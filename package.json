@@ -1,0 +1,39 @@
+{
+  "name": "telecast",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "sync": "vite build && cap sync android",
+    "android": "vite build && cap sync android && cap run android",
+    "android:open": "cap open android",
+    "emu": "$ANDROID_HOME/emulator/emulator -avd telecast_tv -no-snapshot-load -no-snapshot-save -no-boot-anim -dns-server 8.8.8.8,1.1.1.1"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.3.4",
+    "@capacitor/cli": "^8.3.4",
+    "@capacitor/core": "^8.3.4",
+    "@capacitor/filesystem": "^8.1.2",
+    "input": "^1.0.1",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "telegram": "^2.26.22"
+  },
+  "devDependencies": {
+    "@capacitor/preferences": "^8.0.1",
+    "@eslint/js": "^10.0.1",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "eslint": "^10.3.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.6.0",
+    "vite": "^8.0.12",
+    "vite-plugin-node-polyfills": "^0.28.0"
+  }
+}

@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Telecast — Telegram media player for Android TV</title>
+<meta name="description" content="Telecast turns the movies and shows shared in your Telegram groups into a TV library you can browse and play with the remote." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=DM+Sans:wght@400;500&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#080c14; --bg2:#0d1420; --panel:rgba(255,255,255,.04);
+    --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.16);
+    --text:#eef3fb; --dim:#a8b4c8; --mute:#6b7a90;
+    --accent:#2ea6ff; --accent2:#5fc1ff; --warn:#f59e0b;
+    --display:'Outfit',system-ui,sans-serif; --body:'DM Sans',system-ui,sans-serif;
+    --mono:'JetBrains Mono',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:var(--body); font-size:17px; line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1080px; margin:0 auto; padding:0 24px}
+  a{color:var(--accent2)}
+
+  /* hero */
+  header{
+    position:relative; overflow:hidden;
+    border-bottom:1px solid var(--line);
+    background:
+      radial-gradient(900px 420px at 15% -10%, rgba(46,166,255,.20), transparent 60%),
+      radial-gradient(700px 380px at 85% 0%, rgba(95,193,255,.10), transparent 60%),
+      var(--bg2);
+  }
+  .hero{padding:84px 0 72px}
+  .brand{display:flex; align-items:center; gap:14px; margin-bottom:38px}
+  .brand-mark{
+    width:44px; height:44px; border-radius:12px; display:grid; place-items:center;
+    background:linear-gradient(135deg,#2ea6ff,#5fc1ff); color:#06101f;
+    font-family:var(--display); font-weight:700; font-size:20px;
+  }
+  .brand-name{font-family:var(--display); font-weight:600; font-size:21px; letter-spacing:-.01em}
+  h1{
+    font-family:var(--display); font-weight:700; letter-spacing:-.03em;
+    font-size:clamp(38px,6vw,66px); line-height:1.04; margin:0 0 20px;
+  }
+  h1 em{font-style:normal; color:var(--accent2)}
+  .lede{font-size:clamp(17px,2.2vw,21px); color:var(--dim); max-width:620px; margin:0 0 34px}
+  .cta-row{display:flex; flex-wrap:wrap; gap:14px; align-items:center}
+  .btn{
+    display:inline-flex; align-items:center; gap:10px;
+    padding:14px 24px; border-radius:12px; text-decoration:none;
+    font-weight:600; font-size:16px; border:1px solid transparent;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .btn:hover{transform:translateY(-1px)}
+  .btn-primary{background:var(--accent); color:#06101f; box-shadow:0 8px 30px rgba(46,166,255,.28)}
+  .btn-ghost{background:var(--panel); border-color:var(--line2); color:var(--text)}
+  .hero-note{margin-top:18px; font-size:14px; color:var(--mute)}
+
+  /* sections */
+  section{padding:76px 0; border-bottom:1px solid var(--line)}
+  h2{
+    font-family:var(--display); font-weight:600; letter-spacing:-.02em;
+    font-size:clamp(26px,3.4vw,36px); margin:0 0 12px;
+  }
+  .sub{color:var(--dim); max-width:640px; margin:0 0 40px}
+  h3{font-family:var(--display); font-weight:600; font-size:19px; margin:0 0 6px; letter-spacing:-.01em}
+
+  /* downloader callout */
+  .code-card{
+    display:flex; flex-wrap:wrap; gap:32px; align-items:center; justify-content:space-between;
+    padding:34px; border-radius:18px; border:1px solid rgba(46,166,255,.35);
+    background:linear-gradient(135deg, rgba(46,166,255,.13), rgba(46,166,255,.03));
+  }
+  .code-box{text-align:center}
+  .code-label{font-size:13px; text-transform:uppercase; letter-spacing:.14em; color:var(--accent2); margin-bottom:8px}
+  .code{
+    font-family:var(--mono); font-weight:600; font-size:clamp(40px,7vw,60px);
+    letter-spacing:.09em; line-height:1; color:#fff;
+  }
+
+  /* steps */
+  ol.steps{counter-reset:s; list-style:none; padding:0; margin:0; display:grid; gap:18px}
+  ol.steps li{
+    counter-increment:s; position:relative; padding:20px 22px 20px 66px;
+    background:var(--panel); border:1px solid var(--line); border-radius:14px;
+  }
+  ol.steps li::before{
+    content:counter(s); position:absolute; left:20px; top:19px;
+    width:30px; height:30px; border-radius:9px; display:grid; place-items:center;
+    background:var(--accent); color:#06101f; font-family:var(--display); font-weight:700; font-size:15px;
+  }
+  ol.steps p{margin:4px 0 0; color:var(--dim); font-size:15.5px}
+
+  /* features */
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:18px}
+  .card{padding:24px; background:var(--panel); border:1px solid var(--line); border-radius:14px}
+  .card p{margin:0; color:var(--dim); font-size:15.5px}
+  .ico{
+    width:38px; height:38px; border-radius:10px; display:grid; place-items:center;
+    background:rgba(46,166,255,.13); color:var(--accent2); margin-bottom:14px;
+  }
+
+  /* shots */
+  figure{margin:0 0 44px}
+  figure img{
+    width:100%; height:auto; display:block; border-radius:14px;
+    border:1px solid var(--line); background:#000;
+  }
+  figcaption{margin-top:12px; color:var(--mute); font-size:14.5px}
+
+  /* remote keys */
+  .keys{display:grid; gap:10px; margin:0; padding:0}
+  .keys div{display:flex; gap:14px; align-items:baseline; padding:11px 0; border-bottom:1px dashed var(--line)}
+  kbd{
+    font-family:var(--mono); font-size:13px; font-weight:600;
+    background:rgba(255,255,255,.07); border:1px solid var(--line2);
+    border-radius:7px; padding:4px 10px; color:var(--text); white-space:nowrap; min-width:96px; text-align:center;
+  }
+  .keys span{color:var(--dim); font-size:15.5px}
+
+  .note{
+    padding:20px 22px; border-radius:12px; font-size:15.5px; color:var(--dim);
+    background:rgba(245,158,11,.07); border:1px solid rgba(245,158,11,.28);
+  }
+  .note strong{color:var(--warn)}
+
+  footer{padding:48px 0 64px; color:var(--mute); font-size:14.5px}
+  footer a{color:var(--dim)}
+  @media (max-width:640px){ .hero{padding:56px 0 48px} section{padding:56px 0} .code-card{padding:26px} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap hero">
+    <div class="brand">
+      <div class="brand-mark">T</div>
+      <div class="brand-name">Telecast</div>
+    </div>
+    <h1>Your Telegram groups,<br><em>on the big screen.</em></h1>
+    <p class="lede">
+      Telecast signs into your Telegram account, scans the chats you're already in for
+      videos, and turns them into a library you browse with the TV remote — no phone,
+      no cables, no downloads to manage.
+    </p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="telecast.apk" download>Download APK · 3.7 MB</a>
+      <a class="btn btn-ghost" href="#install">Install with Downloader</a>
+    </div>
+    <p class="hero-note">Android TV 7.0 or newer · Google TV, Fire TV, NVIDIA Shield, TV boxes</p>
+  </div>
+</header>
+
+<section id="install">
+  <div class="wrap">
+    <h2>Install it</h2>
+    <p class="sub">
+      The easiest route on a TV is the free <strong>Downloader</strong> app by AFTVnews —
+      it's on every Android TV / Fire TV store. Install that first, then use the code below.
+    </p>
+
+    <div class="code-card">
+      <div>
+        <h3 style="font-size:22px">Open Downloader and enter the code</h3>
+        <p style="color:var(--dim); margin:6px 0 0; max-width:420px">
+          The code fetches this page's APK directly. No computer, no USB stick, no adb.
+        </p>
+      </div>
+      <div class="code-box">
+        <div class="code-label">Downloader code</div>
+        <div class="code">4177726</div>
+      </div>
+    </div>
+
+    <ol class="steps" style="margin-top:34px">
+      <li>
+        <h3>Allow installs from Downloader</h3>
+        <p>Settings → Apps → Special app access → Install unknown apps → turn on <strong>Downloader</strong>.
+           Android grants this per app, so it must be the app you install from.</p>
+      </li>
+      <li>
+        <h3>Enter 4177726 and press Go</h3>
+        <p>Downloader fetches the APK and offers to install it. Choose Install, then Done.</p>
+      </li>
+      <li>
+        <h3>Launch Telecast from the home row</h3>
+        <p>It registers as a proper TV app, so it appears alongside your other apps — not buried in a phone-apps drawer.</p>
+      </li>
+      <li>
+        <h3>Sign in with your phone number</h3>
+        <p>Enter your number on the keypad, then the 5-digit code Telegram sends to your other devices.
+           If you use two-factor, a cloud-password screen follows. The session stays on that TV.</p>
+      </li>
+    </ol>
+
+    <p class="note" style="margin-top:26px">
+      <strong>Already have Telecast installed?</strong> If it was put there with a different build,
+      Android refuses the upgrade and shows a bare “App not installed”. Uninstall the old copy first
+      (Settings → Apps → Telecast → Uninstall), then install again.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>How you use it</h2>
+    <p class="sub">Everything is driven by the D-pad. Arrows move, OK opens, BACK goes up a level.</p>
+
+    <figure>
+      <img src="img/chats.png" alt="Telecast Chats screen: a four-column grid of Telegram groups and channels, each card showing the group name, latest message and how many videos were detected." />
+      <figcaption>
+        <strong>Chats</strong> — every group and channel you're in. Open one and Telecast scans its
+        recent messages for video. Star the ones you care about and they sort to the front.
+      </figcaption>
+    </figure>
+
+    <figure>
+      <img src="img/group.png" alt="A Telegram channel opened in Telecast, showing 189 detected movies as a grid of coloured cards with duration, quality and file size." />
+      <figcaption>
+        <strong>Inside a chat</strong> — every video found, with runtime, quality and size. Filter by
+        Movies, Shows or Files. Press OK on any card to start playing.
+      </figcaption>
+    </figure>
+
+    <figure>
+      <img src="img/openwith.png" alt="The Open with dialog listing Telecast Player, VLC for Android, MX Player and System Default, with the uninstalled players greyed out." />
+      <figcaption>
+        <strong>Open with…</strong> — play in Telecast's own player, or hand the video to VLC or
+        MX Player. Players you don't have installed are greyed out rather than failing silently.
+      </figcaption>
+    </figure>
+
+    <div class="keys">
+      <div><kbd>↑ ↓ ← →</kbd><span>Move around. Left from the grid returns to the menu, right goes back in.</span></div>
+      <div><kbd>OK</kbd><span>Open a chat, play a video, toggle a setting.</span></div>
+      <div><kbd>BACK</kbd><span>Up one level. On the main screen, press twice to quit.</span></div>
+      <div><kbd>← →</kbd><span>While playing, seek. Press OK to pause and resume.</span></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>What it does</h2>
+    <p class="sub">Built for the way people actually share films — as files and links dropped into a group chat.</p>
+    <div class="grid">
+      <div class="card">
+        <div class="ico">▶</div>
+        <h3>Streams, doesn't download</h3>
+        <p>Telegram files start playing straight away and stay seekable, instead of making you wait for a multi-gigabyte download.</p>
+      </div>
+      <div class="card">
+        <div class="ico">⏱</div>
+        <h3>Remembers where you stopped</h3>
+        <p>Resume positions are saved per video and survive restarts. Continue watching sits on the home screen.</p>
+      </div>
+      <div class="card">
+        <div class="ico">CC</div>
+        <h3>Finds subtitles</h3>
+        <p>Uses subtitle files shared in the same chat when they match the video, and falls back to OpenSubtitles.</p>
+      </div>
+      <div class="card">
+        <div class="ico">🔗</div>
+        <h3>Understands links too</h3>
+        <p>Direct video URLs, magnet links and YouTube links posted in chat all show up in the library, tagged by type.</p>
+      </div>
+      <div class="card">
+        <div class="ico">🔍</div>
+        <h3>Search everything</h3>
+        <p>Search your own chats and Telegram-wide video search at once, in any language.</p>
+      </div>
+      <div class="card">
+        <div class="ico">📺</div>
+        <h3>Made for the remote</h3>
+        <p>A real leanback app: full D-pad navigation, landscape 1080p layout, and a spot on the TV home row.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Good to know</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>Your account stays yours</h3>
+        <p>Telecast talks to Telegram directly over MTProto. There's no server in the middle — your
+           session is stored only on that TV, and signing out removes it.</p>
+      </div>
+      <div class="card">
+        <h3>It shows what you already have</h3>
+        <p>Telecast doesn't host, index or share anything. It only lists media that's already in the
+           Telegram chats your own account belongs to.</p>
+      </div>
+      <div class="card">
+        <h3>Handing files to VLC takes a moment</h3>
+        <p>Other apps can't read Telegram's stream directly, so choosing VLC downloads the file first
+           and shows progress. The built-in player needs no wait.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>
+      Telecast · <a href="https://github.com/omer72/telecast">source on GitHub</a> ·
+      built with React, Vite, Capacitor and <a href="https://github.com/gram-js/gramjs">gramjs</a>
+    </p>
+    <p style="margin-top:6px">Not affiliated with Telegram. Telegram is a trademark of Telegram Messenger LLP.</p>
+  </div>
+</footer>
+
+</body>
+</html>

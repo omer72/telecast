@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="320dp"
+    android:height="180dp"
+    android:viewportWidth="320"
+    android:viewportHeight="180">
+    <!-- Dark cinematic background -->
+    <path
+        android:fillColor="#06080d"
+        android:pathData="M0,0h320v180h-320z" />
+    <!-- Subtle accent gradient block -->
+    <path
+        android:pathData="M0,0h320v180h-320z">
+        <aapt:attr xmlns:aapt="http://schemas.android.com/aapt" name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="0" android:startY="0"
+                android:endX="320" android:endY="180">
+                <item android:offset="0" android:color="#001a2a4a" />
+                <item android:offset="1" android:color="#332ea6ff" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <!-- Telegram-style paper-plane glyph -->
+    <path
+        android:fillColor="#2ea6ff"
+        android:pathData="M70,75 L130,55 L122,108 L108,95 L97,108 L97,90 L122,68 L82,88 Z" />
+    <!-- Wordmark: TELECAST (simple block glyphs) -->
+    <path
+        android:fillColor="#eef2f8"
+        android:pathData="M150,68 h12 v6 h-3 v22 h-6 v-22 h-3 z M165,68 h12 v6 h-6 v4 h5 v6 h-5 v4 h6 v6 h-12 z M180,68 h6 v22 h6 v6 h-12 z M195,68 h12 v6 h-6 v4 h5 v6 h-5 v4 h6 v6 h-12 z M210,68 h12 v28 h-6 v-6 h-2 v6 h-4 z M214,74 v10 h2 v-10 z M225,68 h12 v6 h-6 v16 h6 v6 h-12 z M240,68 h12 v6 h-3 v22 h-6 v-22 h-3 z" />
+</vector>
