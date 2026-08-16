@@ -19,7 +19,7 @@ D-pad navigable.
 | Phone + code login     | Real MTProto (`auth.sendCode` → `auth.signIn`), with resend + delivery info |
 | 2FA cloud password     | Real — `PasswordEntry` screen calls `checkPassword()`                     |
 | Session persistence    | `StringSession` in localStorage (WebView-sandboxed)                        |
-| Chat / group listing   | Real (`client.getDialogs`, 100 dialogs)                                    |
+| Chat / group listing   | Real (`client.getDialogs`, 200 dialogs) — groups, channels, private chats and Saved Messages |
 | Message scanning       | Real (`client.getMessages`, last 200 per chat)                             |
 | Global search          | Real (`messages.SearchGlobal` + `InputMessagesFilterVideo`, 30 results)    |
 | Link / file detection  | Real — `file` (video docs), `stream` (mp4/mkv/m3u8 URLs), `magnet`, `yt`   |
@@ -27,7 +27,7 @@ D-pad navigable.
 | Direct streams / YT    | Real — `<video>` for stream URLs, iframe for YouTube                       |
 | Subtitles              | Real — in-chat `.srt`/`.ass` fuzzy-matched, OpenSubtitles fallback, served as WebVTT |
 | Resume positions       | Real — persisted per message id via `@capacitor/preferences`, toggleable in Settings |
-| Favorites              | Real — starred chats persisted alongside positions                         |
+| Favorites              | Real — starred chats, plus starred movies (hold OK on a card) with their own sidebar tab |
 | External player hand-off | Real — custom `IntentLauncher` Capacitor plugin fires `ACTION_VIEW`      |
 | Magnet links           | Detected + badged; playback only via external hand-off (no torrent client) |
 | Card artwork           | Real — the video's own Telegram thumbnail, YouTube thumb for YT links, optional TMDB cover art; gradient fallback |
@@ -64,7 +64,7 @@ account password.
 npm install
 npm run dev          # http://localhost:5173
 npm run lint         # eslint
-npm test             # node self-checks (subtitles, preview art, auth guard)
+npm test             # node self-checks (subtitles, preview art, auth guard, long press)
 ```
 
 ## Android TV
@@ -94,7 +94,7 @@ and disables `mediaPlaybackRequiresUserGesture` (otherwise autoplay is silent).
 ## Flow
 
 `Phone entry` → `5-digit code` → `Cloud password` (if 2FA) → `Library`
-(Home / Chats / Search / Settings) → `Group detail` (media grid with
+(Home / Chats / Favourites / Search / Settings) → `Group detail` (media grid with
 FILE / STREAM / MAGNET / YT badges) → `Player` (resume, ±10s seek, subtitles,
 progress-bar focus seek) → `Open with…` picker.
 
@@ -147,8 +147,7 @@ it. A missing `os` polyfill surfaces as `c.default.type is not a function`.
 
 1. **Magnet links have no torrent client.** They're detected and badged, but
    playback requires handing off to an external app.
-2. **Bookmarks nav item** falls through to Home — not implemented.
-3. **Group media is capped** at the last 200 messages per chat, cached in
+2. **Group media is capped** at the last 200 messages per chat, cached in
    memory for the session. No pagination or incremental refresh.
-4. **Subtitle lookup blocks first play** by ~1s for Telegram files, since the
+3. **Subtitle lookup blocks first play** by ~1s for Telegram files, since the
    Player applies tracks at mount.
