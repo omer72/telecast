@@ -909,7 +909,7 @@ function ChatsContent({ focusedId, groups, favorites, onToggleFav }) {
     <div className="content-scroll" style={{ paddingTop: 8 }}>
       <div className="shelf-head" style={{ marginBottom: 22 }}>
         <h3 style={{ fontSize: 36 }}>Chats</h3>
-        <span className="shelf-sub">Showing groups with detected media · ⭐ favorites first</span>
+        <span className="shelf-sub">Groups, channels and private chats · ⭐ favorites first</span>
       </div>
       <div className="chat-grid" style={{ "--chat-cols": CHAT_COLS }}>
         {groups.map((g, i) => (
@@ -1251,11 +1251,17 @@ export function GroupDetail({ group, onBack, onOpenMovie }) {
         <div className="gh-content">
           <div className="gh-avatar" style={{ background: group.palette }}>{group.avatar}</div>
           <div className="gh-info">
-            <div className="gh-eyebrow">Group · Telegram</div>
+            {/* Was hardcoded "Group · Telegram", which was wrong the moment
+                channels existed and wronger once DMs did. */}
+            <div className="gh-eyebrow">{group.description || "Telegram"}</div>
             <h1 className="gh-title">{group.name}</h1>
             <div className="gh-meta">
-              <span>{group.members.toLocaleString()} members</span>
-              <span className="sep">·</span>
+              {group.members > 0 && (
+                <>
+                  <span>{group.members.toLocaleString()} members</span>
+                  <span className="sep">·</span>
+                </>
+              )}
               <span>{group.movies.length} movies detected</span>
               <span className="sep">·</span>
               <span>{group.description}</span>

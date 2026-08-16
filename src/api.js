@@ -533,26 +533,43 @@ export async function getGroups() {
   if (_groupsCache) return _groupsCache;
 
   const c = await getClient();
-  const dialogs = await c.getDialogs({ limit: 100 });
+  // Raised from 100 when one-to-one chats started counting toward the same
+  // budget — with DMs included, 100 was truncating people's group list.
+  const dialogs = await c.getDialogs({ limit: 200 });
 
   const groups = [];
   for (const d of dialogs) {
-    if (!d.isGroup && !d.isChannel) continue;
-    const name = d.title || d.name || "Untitled";
+    // One-to-one chats are included: people stash films in DMs and, very
+    // often, in Saved Messages. Anything that isn't a group, channel or user
+    // dialog (an unresolved peer, say) still gets skipped.
+    if (!d.isGroup && !d.isChannel && !d.isUser) continue;
+    // Saved Messages is the dialog whose peer is your own account. Telegram
+    // returns it under your display name, which is confusing in a chat list.
+    const isSaved = Boolean(d.entity?.self);
+    const name = isSaved ? "Saved Messages" : (d.title || d.name || "Untitled");
+    const kind = isSaved ? "Saved"
+               : d.isChannel ? "Channel"
+               : d.isGroup ? "Group"
+               : d.entity?.bot ? "Bot"
+               : "Private";
     groups.push({
       id: String(d.id),
       _peer: d.inputEntity,
       name,
+      kind,
       members: d.entity?.participantsCount || 0,
       palette: paletteFor(name),
-      avatar: initialsOf(name),
-      description: d.isChannel ? "Channel · Telegram" : "Group · Telegram",
+      avatar: isSaved ? "★" : initialsOf(name),
+      description: `${kind === "Private" ? "Private chat" : kind === "Saved" ? "Saved Messages" : kind} · Telegram`,
       movieIds: [],
       movies: [], // lazy-loaded by getMedia()
       unread: d.unreadCount || 0,
       lastMessage: d.message?.message?.slice(0, 80) || "",
     });
   }
+  // Saved Messages first when present — it's the one chat that's definitely
+  // yours, and the most likely place to have parked something to watch.
+  groups.sort((a, b) => Number(b.kind === "Saved") - Number(a.kind === "Saved"));
   _groupsCache = groups;
   return groups;
 }

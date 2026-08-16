@@ -143,8 +143,12 @@ export function ChatCard({ group, focused, focusId, isFavorite = false, onToggle
           </span>
           {group.unread > 0 ? (
             <span className="chat-pill chat-unread">{group.unread} new</span>
-          ) : (
+          ) : group.members > 0 ? (
             <span className="chat-pill">{group.members.toLocaleString()} members</span>
+          ) : (
+            // One-to-one chats have no participant count — "0 members" reads
+            // like a broken group, so show what the chat actually is.
+            <span className="chat-pill">{group.kind || "Chat"}</span>
           )}
         </div>
       </div>
