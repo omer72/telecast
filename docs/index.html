@@ -7,131 +7,155 @@
 <meta name="description" content="Telecast turns the movies and shows shared in your Telegram groups into a TV library you can browse and play with the remote." />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=DM+Sans:wght@400;500&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#080c14; --bg2:#0d1420; --panel:rgba(255,255,255,.04);
-    --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.16);
-    --text:#eef3fb; --dim:#a8b4c8; --mute:#6b7a90;
-    --accent:#2ea6ff; --accent2:#5fc1ff; --warn:#f59e0b;
-    --display:'Outfit',system-ui,sans-serif; --body:'DM Sans',system-ui,sans-serif;
+    /* sticker palette */
+    --ink:#26265e; --paper:#f3f6ff; --grape:#5b3df5;
+    --sunny:#ffc53d; --bubblegum:#ff7ba9; --mint:#3ecfaf;
+    --text:var(--ink); --dim:rgba(38,38,94,.72); --mute:rgba(38,38,94,.5);
+    --sticker:4px 4px 0 0 var(--ink); --sticker-lg:8px 8px 0 0 var(--ink);
+    --display:'Fredoka',system-ui,sans-serif; --body:'Nunito',system-ui,sans-serif;
     --mono:'JetBrains Mono',ui-monospace,monospace;
   }
   *{box-sizing:border-box}
   body{
-    margin:0; background:var(--bg); color:var(--text);
-    font-family:var(--body); font-size:17px; line-height:1.65;
+    margin:0; background:var(--paper); color:var(--text);
+    font-family:var(--body); font-size:17px; line-height:1.65; font-weight:600;
     -webkit-font-smoothing:antialiased;
   }
   .wrap{max-width:1080px; margin:0 auto; padding:0 24px}
-  a{color:var(--accent2)}
+  a{color:var(--grape); text-underline-offset:3px}
 
   /* hero */
   header{
     position:relative; overflow:hidden;
-    border-bottom:1px solid var(--line);
+    border-bottom:2px solid var(--ink);
     background:
-      radial-gradient(900px 420px at 15% -10%, rgba(46,166,255,.20), transparent 60%),
-      radial-gradient(700px 380px at 85% 0%, rgba(95,193,255,.10), transparent 60%),
-      var(--bg2);
+      radial-gradient(620px 480px at 12% -15%, rgba(255,197,61,.55), transparent 65%),
+      radial-gradient(560px 420px at 88% -5%, rgba(255,123,169,.45), transparent 65%),
+      radial-gradient(520px 400px at 65% 110%, rgba(62,207,175,.40), transparent 65%),
+      var(--paper);
   }
-  .hero{padding:84px 0 72px}
+  .hero{padding:84px 0 72px; position:relative}
   .brand{display:flex; align-items:center; gap:14px; margin-bottom:38px}
   .brand-mark{
-    width:44px; height:44px; border-radius:12px; display:grid; place-items:center;
-    background:linear-gradient(135deg,#2ea6ff,#5fc1ff); color:#06101f;
-    font-family:var(--display); font-weight:700; font-size:20px;
+    width:52px; height:52px; border-radius:16px; display:grid; place-items:center;
+    background:var(--grape); color:#fff; border:2px solid var(--ink); box-shadow:var(--sticker);
+    font-family:var(--display); font-weight:700; font-size:24px;
   }
-  .brand-name{font-family:var(--display); font-weight:600; font-size:21px; letter-spacing:-.01em}
+  .brand-name{font-family:var(--display); font-weight:600; font-size:23px}
   h1{
-    font-family:var(--display); font-weight:700; letter-spacing:-.03em;
-    font-size:clamp(38px,6vw,66px); line-height:1.04; margin:0 0 20px;
+    font-family:var(--display); font-weight:700; letter-spacing:-.01em;
+    font-size:clamp(38px,6vw,68px); line-height:1.05; margin:0 0 20px;
   }
-  h1 em{font-style:normal; color:var(--accent2)}
+  h1 em{
+    font-style:normal; color:var(--grape);
+    text-decoration:underline; text-decoration-color:var(--sunny);
+    text-decoration-thickness:8px; text-underline-offset:6px;
+  }
   .lede{font-size:clamp(17px,2.2vw,21px); color:var(--dim); max-width:620px; margin:0 0 34px}
-  .cta-row{display:flex; flex-wrap:wrap; gap:14px; align-items:center}
+  .cta-row{display:flex; flex-wrap:wrap; gap:16px; align-items:center}
   .btn{
     display:inline-flex; align-items:center; gap:10px;
-    padding:14px 24px; border-radius:12px; text-decoration:none;
-    font-weight:600; font-size:16px; border:1px solid transparent;
-    transition:transform .15s ease, box-shadow .15s ease;
+    padding:15px 26px; border-radius:999px; text-decoration:none;
+    font-family:var(--display); font-weight:600; font-size:17px;
+    border:2px solid var(--ink); box-shadow:var(--sticker);
+    transition:transform .12s ease, box-shadow .12s ease;
   }
-  .btn:hover{transform:translateY(-1px)}
-  .btn-primary{background:var(--accent); color:#06101f; box-shadow:0 8px 30px rgba(46,166,255,.28)}
-  .btn-ghost{background:var(--panel); border-color:var(--line2); color:var(--text)}
-  .hero-note{margin-top:18px; font-size:14px; color:var(--mute)}
+  .btn:hover{transform:translate(-2px,-2px); box-shadow:var(--sticker-lg)}
+  .btn:active{transform:translate(2px,2px); box-shadow:2px 2px 0 0 var(--ink)}
+  .btn-primary{background:var(--grape); color:#fff}
+  .btn-ghost{background:var(--sunny); color:var(--ink)}
+  .hero-note{margin-top:20px; font-size:14px; color:var(--mute)}
 
   /* sections */
-  section{padding:76px 0; border-bottom:1px solid var(--line)}
+  section{padding:76px 0; border-bottom:2px solid var(--ink)}
   h2{
-    font-family:var(--display); font-weight:600; letter-spacing:-.02em;
-    font-size:clamp(26px,3.4vw,36px); margin:0 0 12px;
+    font-family:var(--display); font-weight:700; letter-spacing:-.01em;
+    font-size:clamp(28px,3.4vw,38px); margin:0 0 12px;
   }
   .sub{color:var(--dim); max-width:640px; margin:0 0 40px}
-  h3{font-family:var(--display); font-weight:600; font-size:19px; margin:0 0 6px; letter-spacing:-.01em}
+  h3{font-family:var(--display); font-weight:600; font-size:20px; margin:0 0 6px}
 
   /* downloader callout */
   .code-card{
     display:flex; flex-wrap:wrap; gap:32px; align-items:center; justify-content:space-between;
-    padding:34px; border-radius:18px; border:1px solid rgba(46,166,255,.35);
-    background:linear-gradient(135deg, rgba(46,166,255,.13), rgba(46,166,255,.03));
+    padding:34px; border-radius:32px; border:2px solid var(--ink);
+    background:var(--mint); box-shadow:var(--sticker-lg); color:var(--ink);
   }
-  .code-box{text-align:center}
-  .code-label{font-size:13px; text-transform:uppercase; letter-spacing:.14em; color:var(--accent2); margin-bottom:8px}
+  .code-box{
+    text-align:center; background:#fff; border:2px solid var(--ink);
+    border-radius:24px; padding:20px 30px; box-shadow:var(--sticker);
+  }
+  .code-label{font-size:13px; text-transform:uppercase; letter-spacing:.14em; color:var(--grape); margin-bottom:8px}
   .code{
-    font-family:var(--mono); font-weight:600; font-size:clamp(40px,7vw,60px);
-    letter-spacing:.09em; line-height:1; color:#fff;
+    font-family:var(--mono); font-weight:600; font-size:clamp(40px,7vw,58px);
+    letter-spacing:.06em; line-height:1; color:var(--ink);
   }
 
   /* steps */
-  ol.steps{counter-reset:s; list-style:none; padding:0; margin:0; display:grid; gap:18px}
+  ol.steps{counter-reset:s; list-style:none; padding:0; margin:0; display:grid; gap:20px}
   ol.steps li{
-    counter-increment:s; position:relative; padding:20px 22px 20px 66px;
-    background:var(--panel); border:1px solid var(--line); border-radius:14px;
+    counter-increment:s; position:relative; padding:22px 24px 22px 74px;
+    background:#fff; border:2px solid var(--ink); border-radius:24px; box-shadow:var(--sticker);
   }
   ol.steps li::before{
-    content:counter(s); position:absolute; left:20px; top:19px;
-    width:30px; height:30px; border-radius:9px; display:grid; place-items:center;
-    background:var(--accent); color:#06101f; font-family:var(--display); font-weight:700; font-size:15px;
+    content:counter(s); position:absolute; left:20px; top:20px;
+    width:38px; height:38px; border-radius:50%; display:grid; place-items:center;
+    background:var(--sunny); color:var(--ink); border:2px solid var(--ink);
+    font-family:var(--display); font-weight:700; font-size:17px;
   }
   ol.steps p{margin:4px 0 0; color:var(--dim); font-size:15.5px}
 
   /* features */
-  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:18px}
-  .card{padding:24px; background:var(--panel); border:1px solid var(--line); border-radius:14px}
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:22px}
+  .card{
+    padding:26px; background:#fff; border:2px solid var(--ink);
+    border-radius:28px; box-shadow:var(--sticker);
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .card:hover{transform:translate(-2px,-2px); box-shadow:var(--sticker-lg)}
   .card p{margin:0; color:var(--dim); font-size:15.5px}
   .ico{
-    width:38px; height:38px; border-radius:10px; display:grid; place-items:center;
-    background:rgba(46,166,255,.13); color:var(--accent2); margin-bottom:14px;
+    width:52px; height:52px; border-radius:16px; display:grid; place-items:center;
+    background:var(--bubblegum); color:var(--ink); border:2px solid var(--ink);
+    font-family:var(--display); font-weight:700; font-size:20px; margin-bottom:16px;
   }
+  /* rotate the sticker palette across the icon row */
+  .card:nth-child(3n+2) .ico{background:var(--sunny)}
+  .card:nth-child(3n) .ico{background:var(--mint)}
 
   /* shots */
-  figure{margin:0 0 44px}
+  figure{margin:0 0 48px}
   figure img{
-    width:100%; height:auto; display:block; border-radius:14px;
-    border:1px solid var(--line); background:#000;
+    width:100%; height:auto; display:block; border-radius:28px;
+    border:2px solid var(--ink); box-shadow:var(--sticker-lg); background:#000;
   }
-  figcaption{margin-top:12px; color:var(--mute); font-size:14.5px}
+  figcaption{margin-top:16px; color:var(--dim); font-size:14.5px}
 
   /* remote keys */
   .keys{display:grid; gap:10px; margin:0; padding:0}
-  .keys div{display:flex; gap:14px; align-items:baseline; padding:11px 0; border-bottom:1px dashed var(--line)}
+  .keys div{display:flex; gap:16px; align-items:baseline; padding:12px 0; border-bottom:2px dashed rgba(38,38,94,.2)}
   kbd{
     font-family:var(--mono); font-size:13px; font-weight:600;
-    background:rgba(255,255,255,.07); border:1px solid var(--line2);
-    border-radius:7px; padding:4px 10px; color:var(--text); white-space:nowrap; min-width:96px; text-align:center;
+    background:#fff; border:2px solid var(--ink); box-shadow:2px 2px 0 0 var(--ink);
+    border-radius:10px; padding:5px 10px; color:var(--ink); white-space:nowrap; min-width:96px; text-align:center;
   }
   .keys span{color:var(--dim); font-size:15.5px}
 
   .note{
-    padding:20px 22px; border-radius:12px; font-size:15.5px; color:var(--dim);
-    background:rgba(245,158,11,.07); border:1px solid rgba(245,158,11,.28);
+    padding:22px 24px; border-radius:24px; font-size:15.5px; color:var(--ink);
+    background:var(--sunny); border:2px solid var(--ink); box-shadow:var(--sticker);
   }
-  .note strong{color:var(--warn)}
+  .note strong{color:var(--ink)}
 
-  footer{padding:48px 0 64px; color:var(--mute); font-size:14.5px}
-  footer a{color:var(--dim)}
-  @media (max-width:640px){ .hero{padding:56px 0 48px} section{padding:56px 0} .code-card{padding:26px} }
+  footer{padding:48px 0 64px; color:var(--dim); font-size:14.5px}
+  footer a{color:var(--grape)}
+  @media (max-width:640px){
+    .hero{padding:56px 0 48px} section{padding:56px 0} .code-card{padding:26px}
+    .code-box{width:100%}
+  }
 </style>
 </head>
 <body>
@@ -210,6 +234,15 @@
   <div class="wrap">
     <h2>How you use it</h2>
     <p class="sub">Everything is driven by the D-pad. Arrows move, OK opens, BACK goes up a level.</p>
+
+    <figure>
+      <img src="img/signin.png" alt="Telecast sign-in screen: a phone number typed on an on-screen keypad, with the Telegram login pitch on the left." />
+      <figcaption>
+        <strong>Sign in</strong> — punch your number in on the keypad with the D-pad, then the
+        5-digit code Telegram sends to your other devices. Two-factor gets its own screen.
+        The session stays on that TV.
+      </figcaption>
+    </figure>
 
     <figure>
       <img src="img/chats.png" alt="Telecast Chats screen: a four-column grid of Telegram groups and channels, each card showing the group name, latest message and how many videos were detected." />
