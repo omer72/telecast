@@ -4,7 +4,7 @@ Telegram media player for Android TV. React + Vite + Capacitor, with real
 **MTProto** integration via [gramjs](https://github.com/gram-js/gramjs).
 
 > **Just want to install it on a TV?** → **https://omer72.github.io/telecast/**
-> Or open the *Downloader* app on your TV and enter code **4177726**.
+> Or open the *Downloader* app on your TV and enter code **9070172**.
 >
 > The rest of this file is for building it yourself.
 
@@ -63,7 +63,8 @@ account password.
 ```bash
 npm install
 npm run dev          # http://localhost:5173
-npm run lint         # eslint — the only automated check; there is no test suite
+npm run lint         # eslint
+npm test             # node self-checks (subtitles, preview art, auth guard)
 ```
 
 ## Android TV
