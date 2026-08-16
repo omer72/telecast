@@ -1591,7 +1591,11 @@ export function Player({ context, onBack, onOpenExternal, onResolvedUrl, onContr
       ) : (
         <div className="player-canvas" style={{ background: art }}></div>
       )}
-      <div className="player-vignette"></div>
+      {/* The scrims exist to keep the controls and the back button legible
+          over bright video. Both of those are behind `showControls`, so when
+          they hide the darkening has nothing left to do — fade it with them
+          rather than leaving the top and bottom of the picture dimmed. */}
+      <div className={`player-vignette ${showControls ? "" : "is-clear"}`}></div>
 
       {loading && (
         <div className="player-loading">
