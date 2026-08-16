@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Chrome, ExternalPicker, HintBar, TVStage } from "./components.jsx";
 import { useFocusGrid } from "./focus.js";
+import { guarded } from "./authGuard.js";
 import { GroupDetail, Library, PasswordEntry, PhoneEntry, PinEntry, Player } from "./screens.jsx";
 import { checkPassword, exportFileToCache, initStreaming, isAuthenticated, logout, resendCode, sendCode, signIn } from "./api.js";
 import { PACKAGES, exitApp, isInstalled, openExternal, openFile } from "./intent.js";
@@ -25,6 +26,19 @@ export default function App() {
   const [phone, setPhone] = useState("");
   const [authError, setAuthError] = useState("");
   const [authBusy, setAuthBusy] = useState(false);
+  // Re-entry guard for the auth calls. It has to be a ref, not authBusy: two
+  // OK presses in the same tick both read the pre-render `false` and both fire,
+  // which is how one phone number ended up sending several auth.SendCode
+  // requests. A ref updates synchronously, so the second call sees it set.
+  const authInFlight = useRef(false);
+
+  // Every path into auth goes through here — keypad OK, keyboard Enter, and
+  // PinEntry's auto-submit-on-5-digits effect. authBusy drives the on-screen
+  // "Requesting login code…" and stays in step automatically.
+  //
+  // Built and invoked at event time rather than wrapping the handlers at render
+  // time, so the ref is never touched during render.
+  const runAuth = (fn) => guarded(authInFlight, setAuthBusy, fn)();
   const [tab, setTab] = useState("home");
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [playerCtx, setPlayerCtx] = useState(null);
@@ -192,10 +206,9 @@ export default function App() {
   };
 
   // -------- auth handlers --------
-  const handlePhoneSubmit = async (p) => {
+  const handlePhoneSubmit = (p) => runAuth(async () => {
     setPhone(p);
     setAuthError("");
-    setAuthBusy(true);
     try {
       const res = await sendCode("+" + p);
       if (res.ok) {
@@ -206,20 +219,17 @@ export default function App() {
       }
     } catch (err) {
       setAuthError(err?.errorMessage || String(err));
-    } finally {
-      setAuthBusy(false);
     }
-  };
+  });
 
-  const handleResend = async () => {
+  const handleResend = () => runAuth(async () => {
     const res = await resendCode();
     if (res?.ok) setDeliveryInfo({ current: res.current, next: res.next, timeout: res.timeout });
     return res;
-  };
+  });
 
-  const handlePinSubmit = async (code) => {
+  const handlePinSubmit = (code) => runAuth(async () => {
     setAuthError("");
-    setAuthBusy(true);
     try {
       const res = await signIn(code);
       if (res.ok) {
@@ -231,24 +241,19 @@ export default function App() {
       }
     } catch (err) {
       setAuthError(err?.errorMessage || String(err));
-    } finally {
-      setAuthBusy(false);
     }
-  };
+  });
 
-  const handlePasswordSubmit = async (pw) => {
+  const handlePasswordSubmit = (pw) => runAuth(async () => {
     setAuthError("");
-    setAuthBusy(true);
     try {
       const res = await checkPassword(pw);
       if (res.ok) setScreen("library");
       else setAuthError(res.error || "Wrong password");
     } catch (err) {
       setAuthError(err?.errorMessage || String(err));
-    } finally {
-      setAuthBusy(false);
     }
-  };
+  });
 
   const handleLogout = async () => {
     await logout();

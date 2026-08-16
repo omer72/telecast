@@ -8,8 +8,15 @@ export function TVStage({ children }) {
   const [scale, setScale] = useState(1);
   useLayoutEffect(() => {
     const fit = () => {
-      const s = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
-      setScale(s);
+      // Hold the scale while a text field has focus. The manifest asks for
+      // windowSoftInputMode="adjustNothing", but from API 35 the platform
+      // delivers IME insets to the WebView anyway, so innerHeight drops by the
+      // keyboard's height and the whole 1920x1080 canvas would visibly shrink
+      // mid-typing. When the IME closes the viewport grows back and fires
+      // another resize, by which point nothing is focused and this recomputes.
+      const tag = document.activeElement?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      setScale(Math.min(window.innerWidth / 1920, window.innerHeight / 1080));
     };
     fit();
     window.addEventListener("resize", fit);

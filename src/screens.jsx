@@ -143,10 +143,13 @@ export function PinEntry({ phone, onSubmit, onBack, onResend, delivery, busy = f
   );
 
   const handleResend = async () => {
-    if (!onResend) return;
+    if (!onResend || resendStatus === "sending") return;
     setResendStatus("sending");
     const res = await onResend();
-    setResendStatus(res?.ok ? "sent" : `error: ${res?.error || "failed"}`);
+    // No result means the guard in App.jsx dropped it because another auth
+    // call was already in flight — that's not an error, so say nothing.
+    if (!res) { setResendStatus(""); return; }
+    setResendStatus(res.ok ? "sent" : `error: ${res.error || "failed"}`);
     setTimeout(() => setResendStatus(""), 5000);
   };
 
@@ -183,11 +186,18 @@ export function PinEntry({ phone, onSubmit, onBack, onResend, delivery, busy = f
     return () => window.removeEventListener("keydown", onKey, true);
   }, []);
 
+  // Auto-submit once the code is complete. `onSubmit` is a fresh closure every
+  // render, so this effect re-runs and re-arms the timer constantly — including
+  // on the re-render that setting authBusy causes. Without the ref, a response
+  // faster than 600ms lets it submit the same code twice.
+  const submittedPin = useRef("");
   useEffect(() => {
-    if (pin.length === len) {
-      const t = setTimeout(() => onSubmit(pin), 600);
-      return () => clearTimeout(t);
-    }
+    if (pin.length !== len || submittedPin.current === pin) return;
+    const t = setTimeout(() => {
+      submittedPin.current = pin;
+      onSubmit(pin);
+    }, 600);
+    return () => clearTimeout(t);
   }, [pin, onSubmit]);
 
   const formatPhone = (raw) => raw ? `+${raw.slice(0, 2)} ${raw.slice(2, 6)} ${raw.slice(6)}` : "your phone";

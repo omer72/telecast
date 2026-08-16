@@ -14,6 +14,12 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
+        <!-- windowSoftInputMode: TVStage scales the fixed 1920x1080 canvas by
+             min(vw/1920, vh/1080). The default adjustResize shrinks the WebView
+             when the IME opens, so innerHeight drops and the whole UI visibly
+             shrinks mid-typing. adjustNothing keeps the window at full size and
+             lets the keyboard overlay it — the search field is at the top, so
+             nothing important gets covered. -->
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
             android:name=".MainActivity"
@@ -21,6 +27,7 @@
             android:theme="@style/AppTheme.NoActionBarLaunch"
             android:launchMode="singleTask"
             android:screenOrientation="landscape"
+            android:windowSoftInputMode="adjustNothing"
             android:exported="true">
 
             <intent-filter>
