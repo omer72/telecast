@@ -4,7 +4,7 @@
  * Run: node src/art.test.mjs
  */
 import assert from "node:assert/strict";
-import { bestThumb, youtubeId } from "./data.js";
+import { bestThumb, tmdbQuery, youtubeId } from "./data.js";
 
 const ID = "dQw4w9WgXcQ";
 for (const url of [
@@ -63,5 +63,28 @@ assert.equal(bestThumb({}), null);
 assert.equal(bestThumb(null), null);
 assert.equal(bestThumb(undefined), null);
 assert.equal(bestThumb({ thumbs: [{ size: 100 }] }), null); // no type field
+
+// --- tmdbQuery ---------------------------------------------------------------
+// A bad query doesn't error, it quietly returns someone else's poster.
+assert.equal(tmdbQuery("Dune Part Two 2024"), "Dune Part Two");
+assert.equal(tmdbQuery("The.Matrix.1999"), "The Matrix");
+assert.equal(tmdbQuery("Arrival [2016]"), "Arrival");
+
+// A trailing number that can't be a release year is part of the title.
+assert.equal(tmdbQuery("Blade Runner 2049"), "Blade Runner 2049");
+assert.equal(tmdbQuery("Blade Runner 2049 2017"), "Blade Runner 2049");
+assert.equal(tmdbQuery("2001 A Space Odyssey"), "2001 A Space Odyssey");
+
+// Episode markers and everything after them go — this is a movie search.
+assert.equal(tmdbQuery("Fauda S05E11 something"), "Fauda");
+assert.equal(tmdbQuery("Some Show 1x02 extra"), "Some Show");
+
+// Placeholder titles must not be searched at all.
+for (const t of ["Untitled", "Magnet link", "YouTube video", "Direct stream"]) {
+  assert.equal(tmdbQuery(t), null, `should skip ${t}`);
+}
+assert.equal(tmdbQuery(""), null);
+assert.equal(tmdbQuery(null), null);
+assert.equal(tmdbQuery("a"), null);
 
 console.log("art.test.mjs OK");

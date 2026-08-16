@@ -25,6 +25,28 @@ export function youtubeId(url) {
   return m ? m[1] : null;
 }
 
+// A filename-derived title, cleaned up enough to search TMDB with, or null if
+// there's nothing worth searching for. tidyTitle() has already stripped the
+// release-group cruft; this removes what's left that would break a match.
+const NOT_A_FILM = new Set(["untitled", "magnet link", "youtube video", "direct stream"]);
+export function tmdbQuery(title) {
+  const q = String(title || "")
+    // Season/episode markers — TMDB's movie search can't use them.
+    .replace(/\b(s\d{1,2}\s?e\d{1,2}|\d{1,2}x\d{2})\b.*$/i, "")
+    .replace(/[[\](){}]/g, " ")
+    .replace(/[-_.]+/g, " ")
+    // Drop a trailing release year (passed as its own search param), but only
+    // if it could actually BE a release year. "Blade Runner 2049" and "2001 A
+    // Space Odyssey" keep their numbers; "The Matrix 1999" loses its.
+    .replace(/\s+(\d{4})\s*$/, (m, y) =>
+      Number(y) >= 1900 && Number(y) <= new Date().getFullYear() + 1 ? "" : m
+    )
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  if (q.length < 2 || NOT_A_FILM.has(q.toLowerCase())) return null;
+  return q;
+}
+
 // Largest usable thumbnail on a Telegram document, or null.
 //
 // Must return an actual PhotoSize object, never an index. gramjs resolves a

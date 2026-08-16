@@ -11,6 +11,7 @@ import { Preferences } from "@capacitor/preferences";
 const KEY_POS = "telecast.positions";
 const KEY_FAV = "telecast.favorites";
 const KEY_PREFS = "telecast.prefs";
+const KEY_TMDB = "telecast.tmdb";
 
 async function readKey(key) {
   try {
@@ -63,6 +64,25 @@ export async function clearPosition(movieId) {
 export async function clearAllPositions() {
   _positions = {};
   await writeKey(KEY_POS, JSON.stringify({}));
+}
+
+// ---------- TMDB artwork lookups ----------
+// { "title|year|shape": url | null }. Negative results are cached too — a film
+// TMDB has never heard of shouldn't cost a request on every launch.
+let _tmdb = null;
+export async function loadTmdbCache() {
+  if (_tmdb) return _tmdb;
+  const raw = await readKey(KEY_TMDB);
+  try { _tmdb = raw ? JSON.parse(raw) : {}; }
+  catch { _tmdb = {}; }
+  return _tmdb;
+}
+
+export async function saveTmdbLookup(key, url) {
+  const all = await loadTmdbCache();
+  if (all[key] === url) return;
+  all[key] = url;
+  await writeKey(KEY_TMDB, JSON.stringify(all));
 }
 
 // ---------- favorites ----------

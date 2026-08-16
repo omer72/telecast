@@ -6,7 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 npm run dev          # vite dev server, http://localhost:5173
-npm run lint         # eslint (the only check — there is no test suite)
+npm run lint         # eslint
+npm test             # node self-checks (subtitles.test.mjs, art.test.mjs)
 npm run build        # vite build → dist/
 npm run sync         # build + cap sync android
 npm run android      # build + sync + cap run android (deploy to device/emulator)
@@ -63,6 +64,17 @@ registered in `MainActivity.onCreate` *before* `super.onCreate`) to fire
 block or Android 11+ `isInstalled` silently returns false. On web it falls
 back to `window.open`.
 
+**Preview art.** `previewArt(movie, shape)` in `api.js` resolves a card image,
+first hit wins: TMDB (needs `VITE_TMDB_KEY`) → YouTube thumb → the video's own
+Telegram thumbnail → `null`, where the caller keeps `movie.art`'s gradient.
+`shape` is `"wide"` (16:9 cards) or `"tall"` (2:3 shelf posters) and picks
+between TMDB's backdrop and poster so neither is crop-mangled. Components use
+the `useArt` hook (own file — `components.jsx` must export only components).
+Two traps: `bestThumb()` must hand gramjs a **PhotoSize object, never an
+index** — on an unresolvable `thumb` gramjs falls through to `fileSize:
+doc.size` and downloads the whole video; and thumbnails are `blob:` URLs, so
+`_artCache` is capped and revokes on eviction.
+
 **Persistence.** `storage.js` — resume positions, favorites, prefs via
 `@capacitor/preferences` with a localStorage fallback, both cached in module
 scope.
@@ -80,5 +92,4 @@ scope.
 - `android/` is committed; `cap sync` rewrites `android/app/src/main/assets/`
   but hand-edited files (`MainActivity.java`, `IntentLauncher.java`, manifest
   `<queries>`) are safe.
-- `README.md` is stale on several points (mock dataset, external-intent stub,
-  resume positions, subtitles) — all of those are now implemented.
+- `README.md` is current; check it before assuming a feature is unimplemented.

@@ -5,7 +5,8 @@
  * app).
  */
 
-import { bestThumb, formatRuntime as _formatRuntime, youtubeId } from "./data.js";
+import { bestThumb, formatRuntime as _formatRuntime, tmdbQuery, youtubeId } from "./data.js";
+import { loadTmdbCache, saveTmdbLookup } from "./storage.js";
 import { pickInChatSubtitle, trackFromBuffer, tryOpenSubtitles } from "./subtitles.js";
 
 const API_ID = Number(import.meta.env.VITE_TG_API_ID || 0);
@@ -241,16 +242,46 @@ function posterFor(s)  { return posters[hashString(s) % posters.length]; }
 // Preview art
 //
 // Resolution order, first hit wins:
-//   1. TMDB poster    — not wired up; see previewArt() below
+//   1. TMDB artwork   — real cover art, needs VITE_TMDB_KEY
 //   2. YouTube thumb  — keyless img.youtube.com URL
 //   3. Telegram thumb — a real frame off the video document
 //   4. null           — caller falls back to movie.art's gradient
+//
+// Callers pass the shape of the box they're filling. Cards are 16:9 and want
+// TMDB's backdrop; shelf posters are 2:3 and want the poster. Putting a
+// portrait poster behind `cover` in a 16:9 box crops it to a middle strip.
 // ---------------------------------------------------------------------------
 
-// movie.id -> Promise<string|null>. Caching the *promise* (not the resolved
-// value) also dedupes the burst of identical requests you get when a grid of
-// cards mounts at once, and survives a card unmounting mid-download.
+const TMDB_KEY = String(import.meta.env.VITE_TMDB_KEY || "");
+
+// "movieId|shape" -> Promise<string|null>. Caching the *promise* (not the
+// resolved value) also dedupes the burst of identical requests you get when a
+// grid of cards mounts at once, and survives a card unmounting mid-download.
 const _artCache = new Map();
+const MAX_CACHED_ART = 300;
+
+// Telegram downloads are serialized on one connection, so a grid mounting 30
+// cards would queue 30 thumbnail fetches ahead of anything else the user does.
+// Cap how many are in flight; the rest wait their turn.
+// ponytail: fixed cap, swap for focus-cursor-driven prefetch if it still drags.
+const MAX_INFLIGHT = 4;
+let _inflight = 0;
+const _queue = [];
+
+function withLimit(fn) {
+  return new Promise((resolve) => {
+    const run = async () => {
+      _inflight++;
+      try { resolve(await fn()); }
+      finally {
+        _inflight--;
+        _queue.shift()?.();
+      }
+    };
+    if (_inflight < MAX_INFLIGHT) run();
+    else _queue.push(run);
+  });
+}
 
 function ytThumb(movie) {
   if (movie.type !== "yt") return null;
@@ -269,18 +300,75 @@ async function tgThumb(movie) {
   return URL.createObjectURL(new Blob([buf]));
 }
 
+async function tmdbArt(movie, shape) {
+  if (!TMDB_KEY) return null;
+  const title = tmdbQuery(movie.title);
+  if (!title) return null;
+
+  const key = `${title}|${movie.year || ""}|${shape}`;
+  const cached = await loadTmdbCache();
+  // A previous miss is stored as null — present but falsy, so check the key.
+  if (key in cached) return cached[key];
+
+  let url = null;
+  try {
+    const qs = new URLSearchParams({
+      api_key: TMDB_KEY,
+      query: title,
+      include_adult: "false",
+    });
+    if (movie.year) qs.set("year", String(movie.year));
+    const res = await fetch(`https://api.themoviedb.org/3/search/movie?${qs}`);
+    if (!res.ok) throw new Error(`TMDB ${res.status}`);
+    const hit = (await res.json()).results?.[0];
+    // Prefer the shape that fits the box, but a wrong-shape image still beats
+    // a gradient, so fall back to whichever one this title actually has.
+    const path = shape === "tall"
+      ? hit?.poster_path || hit?.backdrop_path
+      : hit?.backdrop_path || hit?.poster_path;
+    if (path) url = `https://image.tmdb.org/t/p/w780${path}`;
+  } catch (err) {
+    // Don't cache a network failure as "no such film" — leave it unresolved so
+    // the next launch retries. Only a real answer gets written below.
+    console.warn("[Telecast] TMDB lookup failed", title, err);
+    return null;
+  }
+
+  await saveTmdbLookup(key, url);
+  return url;
+}
+
 /**
  * Resolve a real preview image for a card.
+ * `shape` is "wide" (16:9 card) or "tall" (2:3 poster).
  * Returns a CSS background value (`url("…")`) or null to keep the gradient.
  */
-export function previewArt(movie) {
-  if (_artCache.has(movie.id)) return _artCache.get(movie.id);
+export function previewArt(movie, shape = "wide") {
+  const cacheKey = `${movie.id}|${shape}`;
+  if (_artCache.has(cacheKey)) return _artCache.get(cacheKey);
 
-  const p = (async () => {
-    // 1. TMDB poster goes here once VITE_TMDB_KEY exists — search by
-    //    movie.title + movie.year, return url(image.tmdb.org/...).
+  // Telegram thumbnails are blob: URLs, which live until revoked. A TV session
+  // runs for hours across a big library, so bound the cache and hand the bytes
+  // back on eviction. The cap is far above anything on screen at once, so an
+  // evicted entry is long out of view; scrolling back just re-fetches it.
+  const evict = () => {
+    while (_artCache.size > MAX_CACHED_ART) {
+      const [oldest] = _artCache.keys(); // Map iterates in insertion order
+      const stale = _artCache.get(oldest);
+      _artCache.delete(oldest);
+      Promise.resolve(stale)
+        .then((css) => {
+          const blob = /url\("(blob:[^"]+)"\)/.exec(css || "")?.[1];
+          if (blob) URL.revokeObjectURL(blob);
+        })
+        .catch(() => {});
+    }
+  };
+
+  const p = withLimit(async () => {
     const url =
       ytThumb(movie) ||
+      (await tmdbArt(movie, shape)) ||
       (await tgThumb(movie).catch((err) => {
         // Don't let one bad thumbnail break a grid, but don't hide it either —
         // a silent catch here is what made the last bug invisible.
@@ -288,9 +376,10 @@ export function previewArt(movie) {
         return null;
       }));
     return url ? `url("${url}") center / cover no-repeat` : null;
-  })();
+  });
 
-  _artCache.set(movie.id, p);
+  _artCache.set(cacheKey, p);
+  evict();
   return p;
 }
 

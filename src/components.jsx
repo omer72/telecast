@@ -69,7 +69,7 @@ export function Poster({ movie, focused, source, badge, showProgress = false, wi
   const isComplete = movie.progress >= 1;
   const showProg = showProgress && movie.progress > 0 && movie.progress < 1;
   const style = width ? { width } : undefined;
-  const art = useArt(movie);
+  const art = useArt(movie, "tall");
   return (
     <div data-focus-id={focusId} className={`poster focusable ${focused ? "is-focused" : ""}`} style={style}>
       <div className="poster-art" style={{ background: art }}></div>

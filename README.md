@@ -30,6 +30,7 @@ D-pad navigable.
 | Favorites              | Real — starred chats persisted alongside positions                         |
 | External player hand-off | Real — custom `IntentLauncher` Capacitor plugin fires `ACTION_VIEW`      |
 | Magnet links           | Detected + badged; playback only via external hand-off (no torrent client) |
+| Card artwork           | Real — the video's own Telegram thumbnail, YouTube thumb for YT links, optional TMDB cover art; gradient fallback |
 
 There is **no mock dataset**. Without credentials the app boots but every
 Telegram call fails. (The old mock lived in `src/data.js` — restore it from
@@ -47,7 +48,11 @@ git history if you want a credential-free design preview.)
 4. Optionally add `VITE_OPENSUBTITLES_API_KEY` / `_USERNAME` / `_PASSWORD` to
    enable the OpenSubtitles fallback. Without them, subtitles come only from
    files shared in the same chat as the video.
-5. `npm run dev` — the phone-entry screen now calls real MTProto on submit.
+5. Optionally add `VITE_TMDB_KEY` (free, from
+   <https://www.themoviedb.org/settings/api>) for real cover art on cards.
+   Without it, cards use the video's own Telegram thumbnail, and magnet /
+   stream links keep their gradient.
+6. `npm run dev` — the phone-entry screen now calls real MTProto on submit.
 
 `.env.local` is git-ignored. **Do not** put your session string under source
 control; it's persisted in WebView localStorage and is equivalent to your
