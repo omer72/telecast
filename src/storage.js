@@ -12,6 +12,7 @@ const KEY_POS = "telecast.positions";
 const KEY_FAV = "telecast.favorites";
 const KEY_PREFS = "telecast.prefs";
 const KEY_TMDB = "telecast.tmdb";
+const KEY_FAV_MOVIES = "telecast.favmovies";
 
 async function readKey(key) {
   try {
@@ -106,6 +107,28 @@ export async function toggleFavorite(groupId) {
 export async function isFavorite(groupId) {
   const set = await loadFavorites();
   return set.has(groupId);
+}
+
+// ---------- favorite movies ----------
+// Ids only, same shape as chat favorites. The Favourites tab renders these by
+// matching against the movies already loaded in memory, so a favourite in a
+// chat this session hasn't scanned yet won't appear until that chat is opened
+// — the same rule Continue-watching already follows.
+let _favMovies = null;
+export async function loadMovieFavorites() {
+  if (_favMovies) return _favMovies;
+  const raw = await readKey(KEY_FAV_MOVIES);
+  try { _favMovies = new Set(raw ? JSON.parse(raw) : []); }
+  catch { _favMovies = new Set(); }
+  return _favMovies;
+}
+
+export async function toggleMovieFavorite(movieId) {
+  const set = await loadMovieFavorites();
+  if (set.has(movieId)) set.delete(movieId);
+  else set.add(movieId);
+  await writeKey(KEY_FAV_MOVIES, JSON.stringify([...set]));
+  return set;
 }
 
 // ---------- general prefs ----------

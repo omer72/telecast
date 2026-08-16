@@ -72,7 +72,19 @@ export function HintBar({ hints }) {
   );
 }
 
-export function Poster({ movie, focused, source, badge, showProgress = false, width, focusId }) {
+// Shown on a favourited movie card. Purely an indicator — toggling is a long
+// press on the card itself, since a TV remote has no second button to spare.
+function FavStar() {
+  return (
+    <div className="fav-star" title="Favourite">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
+        <polygon points="12 2 15 8.5 22 9.3 17 14.3 18.2 21.3 12 17.8 5.8 21.3 7 14.3 2 9.3 9 8.5 12 2" />
+      </svg>
+    </div>
+  );
+}
+
+export function Poster({ movie, focused, source, badge, showProgress = false, width, focusId, isFavorite = false }) {
   const isComplete = movie.progress >= 1;
   const showProg = showProgress && movie.progress > 0 && movie.progress < 1;
   const style = width ? { width } : undefined;
@@ -83,6 +95,7 @@ export function Poster({ movie, focused, source, badge, showProgress = false, wi
       <div className="poster-grad"></div>
       {badge && <div className={`poster-badge ${badge.tone || ""}`}>{badge.text}</div>}
       {!badge && movie.quality && <div className="poster-badge">{movie.quality}</div>}
+      {isFavorite && <FavStar />}
       {source && (
         <div className="poster-source" style={{ background: source.color }} title={source.name}>
           {source.initials}
@@ -150,7 +163,7 @@ export function ChatCard({ group, focused, focusId, isFavorite = false, onToggle
   );
 }
 
-export function MediaCard({ entry, focused, focusId }) {
+export function MediaCard({ entry, focused, focusId, isFavorite = false }) {
   const { movie, sender, sentAgo } = entry;
   const tMeta = TYPE_META[movie.type];
   const iconMap = { file: "file", stream: "link", magnet: "magnet", yt: "youtube" };
@@ -164,6 +177,7 @@ export function MediaCard({ entry, focused, focusId }) {
         {tMeta.short}
       </div>
       <div className="mc-duration">{formatRuntime(movie.runtime)}</div>
+      {isFavorite && <FavStar />}
       <div className="mc-body">
         <div className="mc-title">
           {movie.title} <span style={{ color: "var(--text-mute)", fontWeight: 400 }}>· {movie.year}</span>

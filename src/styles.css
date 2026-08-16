@@ -628,6 +628,21 @@ body {
   border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
+/* Favourite marker on movie cards. Sits below the top row of badges, which is
+   already occupied by quality/type on the left and source/duration on the
+   right. Indicator only — long-press OK on the card toggles it. */
+.fav-star {
+  position: absolute;
+  top: 46px; right: 10px;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  color: var(--warn);
+  z-index: 3;
+}
+
 /* Chat shelf cards (chat preview style) */
 .chat-card {
   width: 340px;

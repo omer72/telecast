@@ -5,7 +5,7 @@ import { ChatCard, Keypad, MediaCard, Poster } from "./components.jsx";
 import { useArt } from "./useArt.js";
 import { fmtClock, formatRuntime } from "./data.js";
 import { getGroups, getMe, getMedia, resolveMediaUrl, searchGlobalMedia } from "./api.js";
-import { clearAllPositions, getPosition, loadFavorites, loadPositions, loadPrefs, savePosition, setPref, toggleFavorite } from "./storage.js";
+import { clearAllPositions, getPosition, loadFavorites, loadMovieFavorites, loadPositions, loadPrefs, savePosition, setPref, toggleFavorite, toggleMovieFavorite } from "./storage.js";
 import { PACKAGES, exitApp, isInstalled } from "./intent.js";
 
 // =========================================================
@@ -380,6 +380,7 @@ const CHAT_COLS = 4;
 const NAV_ITEMS = [
   { id: "nav-home", icon: "home", label: "Home" },
   { id: "nav-chats", icon: "chat", label: "Chats" },
+  { id: "nav-favorites", icon: "star", label: "Favourites" },
   { id: "nav-search", icon: "search", label: "Search" },
   { id: "nav-settings", icon: "settings", label: "Settings" },
 ];
@@ -388,6 +389,7 @@ export function Library({ tab, setTab, onSelectGroup, onOpenPlayer, onLogout }) 
   const [groups, setGroups] = useState(() => []);
   const [positions, setPositions] = useState({});
   const [favorites, setFavorites] = useState(new Set());
+  const [movieFavs, setMovieFavs] = useState(new Set());
   const [me, setMe] = useState(null);
   const [prefs, setPrefs] = useState({ resumeEnabled: true });
   const [installed, setInstalled] = useState({ vlc: false, mx: false });
@@ -399,10 +401,11 @@ export function Library({ tab, setTab, onSelectGroup, onOpenPlayer, onLogout }) 
     let cancelled = false;
     (async () => {
       try {
-        const [g, pos, favs, user, p, vlc, mx] = await Promise.all([
+        const [g, pos, favs, mfavs, user, p, vlc, mx] = await Promise.all([
           getGroups(),
           loadPositions(),
           loadFavorites(),
+          loadMovieFavorites(),
           getMe(),
           loadPrefs(),
           isInstalled(PACKAGES.vlc),
@@ -412,6 +415,7 @@ export function Library({ tab, setTab, onSelectGroup, onOpenPlayer, onLogout }) 
         setGroups(g);
         setPositions(pos);
         setFavorites(new Set(favs));
+        setMovieFavs(new Set(mfavs));
         setMe(user);
         setPrefs(p);
         setInstalled({ vlc, mx });
@@ -453,6 +457,12 @@ export function Library({ tab, setTab, onSelectGroup, onOpenPlayer, onLogout }) 
   const handleToggleFav = async (gid) => {
     const next = await toggleFavorite(gid);
     setFavorites(new Set(next));
+  };
+
+  const handleToggleMovieFav = async (movieId) => {
+    if (!movieId) return;
+    const next = await toggleMovieFavorite(movieId);
+    setMovieFavs(new Set(next));
   };
 
   // Sort groups: favorites first, otherwise stable.
@@ -509,6 +519,27 @@ export function Library({ tab, setTab, onSelectGroup, onOpenPlayer, onLogout }) 
     };
   }, [sortedGroups, positions]);
 
+  // Favourited movies, resolved against the chats already scanned this session
+  // — same constraint Continue-watching lives under.
+  const favEntries = useMemo(() => {
+    if (!movieFavs.size) return [];
+    const out = [];
+    for (const g of sortedGroups) {
+      for (const mv of g.movies || []) {
+        if (movieFavs.has(mv.id)) out.push({ movie: mv, sender: g.name, sentAgo: "" });
+      }
+    }
+    return out;
+  }, [sortedGroups, movieFavs]);
+
+  const favoritesRows = useMemo(() => {
+    const rows = [];
+    for (let i = 0; i < favEntries.length; i += 5) {
+      rows.push(favEntries.slice(i, i + 5).map((_, k) => `fav-${i + k}`));
+    }
+    return rows;
+  }, [favEntries]);
+
   const chatsRows = useMemo(() => {
     const cols = CHAT_COLS;
     const rows = [];
@@ -540,10 +571,33 @@ export function Library({ tab, setTab, onSelectGroup, onOpenPlayer, onLogout }) 
   }, [searchResults, searchGlobal]);
 
   const contentRows =
-    tab === "chats"    ? chatsRows :
-    tab === "settings" ? settingsRows :
-    tab === "search"   ? searchRows :
-                         homeRows.grid;
+    tab === "chats"     ? chatsRows :
+    tab === "favorites" ? favoritesRows :
+    tab === "settings"  ? settingsRows :
+    tab === "search"    ? searchRows :
+                          homeRows.grid;
+
+  // Focus id -> the movie behind it, for the long-press favourite toggle.
+  // Deliberately separate from handleEnter: that function also decides *where
+  // to navigate*, and threading a second meaning through it would be a much
+  // riskier edit than a small lookup that only long-press uses.
+  const movieForId = (id) => {
+    if (!id) return null;
+    if (id === "hero-resume" || id === "hero-info") {
+      return homeRows.continueWatching[0] || sortedGroups[0]?.movies?.[0] || null;
+    }
+    if (id.startsWith("cw-")) return homeRows.continueWatching[parseInt(id.slice(3))] || null;
+    if (id.startsWith("latest-")) return homeRows.latest[parseInt(id.slice(7))] || null;
+    if (id.startsWith("sm-")) return searchResults.localMedia[parseInt(id.slice(3))]?.movie || null;
+    if (id.startsWith("sgm-")) return searchGlobal[parseInt(id.slice(4))]?.movie || null;
+    if (id.startsWith("fav-")) return favEntries[parseInt(id.slice(4))]?.movie || null;
+    return null; // chats, nav and settings rows have no movie
+  };
+
+  const handleLongEnter = (id) => {
+    const mv = movieForId(id);
+    if (mv) handleToggleMovieFav(mv.id);
+  };
 
   const handleEnter = (id) => {
     if (id?.startsWith("nav-")) {
@@ -574,6 +628,15 @@ export function Library({ tab, setTab, onSelectGroup, onOpenPlayer, onLogout }) 
       const idx = parseInt(id.slice(7));
       const mv = homeRows.latest[idx];
       if (mv) onOpenPlayer(mv, { group: sortedGroups[1] || sortedGroups[0], sender: "—", resume: false });
+    } else if (id?.startsWith("fav-")) {
+      const entry = favEntries[parseInt(id.slice(4))];
+      if (entry) {
+        onOpenPlayer(entry.movie, {
+          group: { name: entry.sender, avatar: "TG", palette: "linear-gradient(135deg,#2ea6ff,#5fc1ff)" },
+          sender: "—",
+          resume: true,
+        });
+      }
     } else if (id === "s-resume") {
       handleToggleResume();
     } else if (id === "s-clear-history") {
@@ -601,6 +664,9 @@ export function Library({ tab, setTab, onSelectGroup, onOpenPlayer, onLogout }) 
   });
   const { focusedId: contentFocused, setPos: setContentPos } = useFocusGrid(contentRows, {
     onEnter: handleEnter,
+    // Only the content grid opts into long-press, so the sidebar keeps
+    // reacting to OK on keydown.
+    onLongEnter: handleLongEnter,
     onEdgeLeft: () => setZone("nav"),
     onBack: () => setZone("nav"),
     enabled: zone === "content",
@@ -635,6 +701,7 @@ export function Library({ tab, setTab, onSelectGroup, onOpenPlayer, onLogout }) 
             latest={homeRows.latest}
             favorites={favorites}
             onToggleFav={handleToggleFav}
+            movieFavs={movieFavs}
           />
         )}
         {tab === "chats" && (
@@ -644,6 +711,9 @@ export function Library({ tab, setTab, onSelectGroup, onOpenPlayer, onLogout }) 
             favorites={favorites}
             onToggleFav={handleToggleFav}
           />
+        )}
+        {tab === "favorites" && (
+          <FavoritesContent focusedId={focusedId} entries={favEntries} movieFavs={movieFavs} />
         )}
         {tab === "settings" && (
           <SettingsContent
@@ -666,6 +736,7 @@ export function Library({ tab, setTab, onSelectGroup, onOpenPlayer, onLogout }) 
             searching={searching}
             favorites={favorites}
             onToggleFav={handleToggleFav}
+            movieFavs={movieFavs}
           />
         )}
       </div>
@@ -703,7 +774,7 @@ function Sidebar({ focusedId, tab, me }) {
   );
 }
 
-function HomeContent({ focusedId, groups, continueWatching, latest, favorites, onToggleFav }) {
+function HomeContent({ focusedId, groups, continueWatching, latest, favorites, onToggleFav, movieFavs }) {
   const hero = continueWatching[0] || groups[0]?.movies?.[0];
   const heroArt = useArt(hero);
   const heroGroup = groups[0] || { name: "Telegram", avatar: "TG", palette: "linear-gradient(135deg,#2ea6ff,#5fc1ff)" };
@@ -780,6 +851,7 @@ function HomeContent({ focusedId, groups, continueWatching, latest, favorites, o
                 focusId={`cw-${i}`}
                 focused={focusedId === `cw-${i}`}
                 showProgress
+                isFavorite={movieFavs.has(mv.id)}
                 source={{ initials: sourceGroup.avatar, color: sourceGroup.palette, name: sourceGroup.name }}
               />
             );
@@ -821,6 +893,7 @@ function HomeContent({ focusedId, groups, continueWatching, latest, favorites, o
                 movie={mv}
                 focusId={`latest-${i}`}
                 focused={focusedId === `latest-${i}`}
+                isFavorite={movieFavs.has(mv.id)}
                 source={{ initials: heroGroup.avatar, color: heroGroup.palette, name: heroGroup.name }}
               />
             ))}
@@ -847,6 +920,51 @@ function ChatsContent({ focusedId, groups, favorites, onToggleFav }) {
             focused={focusedId === `chat-${i}`}
             isFavorite={favorites.has(g.id)}
             onToggleFav={() => onToggleFav(g.id)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function FavoritesContent({ focusedId, entries, movieFavs }) {
+  if (!entries.length) {
+    return (
+      <div className="content-scroll">
+        <div style={{ display: "grid", placeItems: "center", height: "70%", textAlign: "center" }}>
+          <div>
+            <h3 style={{ fontFamily: "var(--f-display)", fontSize: 34, margin: "0 0 12px" }}>
+              No favourites yet
+            </h3>
+            <p style={{ color: "var(--text-dim)", maxWidth: 560, margin: "0 auto", lineHeight: 1.5 }}>
+              Hold <strong>OK</strong> on any movie for a moment to star it, and it shows up here.
+              {movieFavs.size > 0 && (
+                <>
+                  <br />
+                  You have {movieFavs.size} starred in chats this session hasn’t scanned yet — open
+                  those chats and they’ll appear.
+                </>
+              )}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="content-scroll" style={{ paddingTop: 8 }}>
+      <div className="shelf-head" style={{ marginBottom: 22 }}>
+        <h3 style={{ fontSize: 36 }}>Favourites</h3>
+        <span className="shelf-sub">{entries.length} starred · hold OK on a card to remove</span>
+      </div>
+      <div className="search-media-grid">
+        {entries.map((entry, i) => (
+          <MediaCard
+            key={entry.movie.id}
+            entry={entry}
+            focusId={`fav-${i}`}
+            focused={focusedId === `fav-${i}`}
+            isFavorite
           />
         ))}
       </div>
@@ -952,7 +1070,7 @@ function SettingsContent({ focusedId, me, prefs, installed, positionsCount, favo
 // =========================================================
 // SearchContent — universal search across chats + Telegram videos
 // =========================================================
-function SearchContent({ focusedId, query, setQuery, chats, localMedia, globalMedia, searching, favorites, onToggleFav }) {
+function SearchContent({ focusedId, query, setQuery, chats, localMedia, globalMedia, searching, favorites, onToggleFav, movieFavs }) {
   const inputRef = useRef(null);
   const hasQuery = query.trim().length > 0;
   const empty = hasQuery && chats.length === 0 && localMedia.length === 0 && globalMedia.length === 0 && !searching;
@@ -1021,7 +1139,7 @@ function SearchContent({ focusedId, query, setQuery, chats, localMedia, globalMe
           </div>
           <div className="search-media-grid">
             {localMedia.map((e, i) => (
-              <MediaCard key={`sm-${i}-${e.movie.id}`} entry={e} focusId={`sm-${i}`} focused={focusedId === `sm-${i}`} />
+              <MediaCard key={`sm-${i}-${e.movie.id}`} entry={e} focusId={`sm-${i}`} focused={focusedId === `sm-${i}`} isFavorite={movieFavs.has(e.movie.id)} />
             ))}
           </div>
         </div>
@@ -1035,7 +1153,7 @@ function SearchContent({ focusedId, query, setQuery, chats, localMedia, globalMe
           </div>
           <div className="search-media-grid">
             {globalMedia.map((e, i) => (
-              <MediaCard key={`sgm-${i}-${e.movie.id}`} entry={e} focusId={`sgm-${i}`} focused={focusedId === `sgm-${i}`} />
+              <MediaCard key={`sgm-${i}-${e.movie.id}`} entry={e} focusId={`sgm-${i}`} focused={focusedId === `sgm-${i}`} isFavorite={movieFavs.has(e.movie.id)} />
             ))}
           </div>
         </div>
@@ -1059,6 +1177,14 @@ function SearchContent({ focusedId, query, setQuery, chats, localMedia, globalMe
 export function GroupDetail({ group, onBack, onOpenMovie }) {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
+  // Its own copy: this screen sits outside Library, and loadMovieFavorites()
+  // is cached module-side so this costs nothing after the first read.
+  const [movieFavs, setMovieFavs] = useState(new Set());
+  useEffect(() => {
+    let cancelled = false;
+    loadMovieFavorites().then((s) => { if (!cancelled) setMovieFavs(new Set(s)); });
+    return () => { cancelled = true; };
+  }, []);
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
@@ -1094,7 +1220,20 @@ export function GroupDetail({ group, onBack, onOpenMovie }) {
     }
   };
 
-  const { focusedId } = useFocusGrid(rows, { onEnter: handleEnter, onBack, initial: "mc-0" });
+  // Hold OK to star, same gesture as the shelves on Home.
+  const handleLongEnter = async (id) => {
+    if (!id?.startsWith("mc-")) return;
+    const entry = entries[parseInt(id.slice(3))];
+    if (!entry) return;
+    setMovieFavs(new Set(await toggleMovieFavorite(entry.movie.id)));
+  };
+
+  const { focusedId } = useFocusGrid(rows, {
+    onEnter: handleEnter,
+    onLongEnter: handleLongEnter,
+    onBack,
+    initial: "mc-0",
+  });
 
   const onScreenClick = (e) => {
     const id = e.target.closest?.("[data-focus-id]")?.dataset.focusId;
@@ -1153,7 +1292,7 @@ export function GroupDetail({ group, onBack, onOpenMovie }) {
             </div>
           )}
           {entries.map((entry, i) => (
-            <MediaCard key={entry.movie.id + i} entry={entry} focusId={`mc-${i}`} focused={focusedId === `mc-${i}`} />
+            <MediaCard key={entry.movie.id + i} entry={entry} focusId={`mc-${i}`} focused={focusedId === `mc-${i}`} isFavorite={movieFavs.has(entry.movie.id)} />
           ))}
         </div>
       </div>

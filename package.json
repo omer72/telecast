@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "test": "node src/subtitles.test.mjs && node src/art.test.mjs && node src/authGuard.test.mjs",
+    "test": "node src/subtitles.test.mjs && node src/art.test.mjs && node src/authGuard.test.mjs && node src/longPress.test.mjs",
     "preview": "vite preview",
     "sync": "vite build && cap sync android",
     "android": "vite build && cap sync android && cap run android",

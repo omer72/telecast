@@ -63,6 +63,8 @@ export function Icon({ name, size = 24, stroke = "currentColor", fill = "none" }
       </>
     ),
     bookmark: <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />,
+    // Matches the star shown on favourited cards — same metaphor, same shape.
+    star: <polygon points="12 2 15 8.5 22 9.3 17 14.3 18.2 21.3 12 17.8 5.8 21.3 7 14.3 2 9.3 9 8.5 12 2" />,
     info: (
       <>
         <circle cx="12" cy="12" r="9" />

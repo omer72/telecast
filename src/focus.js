@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createPressTracker } from "./longPress.js";
 
 export function useFocusGrid(allRows, opts = {}) {
-  const { onEnter, onBack, onEdgeLeft, onEdgeRight, enabled = true, initial = null } = opts;
+  const { onEnter, onLongEnter, onBack, onEdgeLeft, onEdgeRight, enabled = true, initial = null } = opts;
   // Empty rows are dead space: focus lands on them, nothing is highlighted,
   // and the user has to press the same key twice to get past. Callers build
   // rows from lists that are often empty (no continue-watching, no results),
@@ -30,6 +31,11 @@ export function useFocusGrid(allRows, opts = {}) {
   }, [rows]);
 
   const focusedId = (rows[pos.r] && rows[pos.r][pos.c]) || null;
+
+  // See longPress.js for why this has to survive re-renders. Initialised
+  // eagerly rather than lazily — a `if (!press.current)` check would be
+  // touching a ref during render.
+  const press = useRef(createPressTracker());
 
   // Whenever focus changes, scroll the focused element into view in its
   // nearest scroll container. With `block: nearest`, the page only scrolls if
@@ -83,10 +89,17 @@ export function useFocusGrid(allRows, opts = {}) {
         });
         e.preventDefault();
       } else if (k === "Enter" || k === " ") {
-        if (onEnter && focusedId) {
-          onEnter(focusedId);
-          e.preventDefault();
+        if (!focusedId) return;
+        // Without a long-press handler, keep firing on keydown exactly as
+        // before — the keypad and nav depend on that immediacy.
+        if (!onLongEnter) {
+          if (onEnter) { onEnter(focusedId); e.preventDefault(); }
+          return;
         }
+        // With one, the short action has to wait for keyup: firing it on
+        // keydown would open the movie before we could tell it was a hold.
+        e.preventDefault();
+        if (press.current.down(e.timeStamp, e.repeat) === "long") onLongEnter(focusedId);
       } else if (k === "Escape" || k === "Backspace") {
         // Always swallow, even with no onBack: on a root screen the default
         // action is the WebView/browser navigating away (on Android that
@@ -95,9 +108,21 @@ export function useFocusGrid(allRows, opts = {}) {
         onBack?.();
       }
     };
+    const onKeyUp = (e) => {
+      if (!onLongEnter) return;
+      if (e.key !== "Enter" && e.key !== " ") return;
+      const what = press.current.up(e.timeStamp);
+      if (!focusedId) return;
+      if (what === "long") onLongEnter(focusedId);
+      else if (what === "short") onEnter?.(focusedId);
+    };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [rows, enabled, onEnter, onBack, onEdgeLeft, onEdgeRight, focusedId, pos]);
+    window.addEventListener("keyup", onKeyUp);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("keyup", onKeyUp);
+    };
+  }, [rows, enabled, onEnter, onLongEnter, onBack, onEdgeLeft, onEdgeRight, focusedId, pos]);
 
   return { focusedId, pos, setPos };
 }
