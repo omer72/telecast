@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "./Icon.jsx";
 import { focusedClass, keyValue, useFocusGrid } from "./focus.js";
 import { ChatCard, Keypad, MediaCard, Poster } from "./components.jsx";
+import { useArt } from "./useArt.js";
 import { fmtClock, formatRuntime } from "./data.js";
 import { getGroups, getMe, getMedia, resolveMediaUrl, searchGlobalMedia } from "./api.js";
 import { clearAllPositions, getPosition, loadFavorites, loadPositions, loadPrefs, savePosition, setPref, toggleFavorite } from "./storage.js";
@@ -694,6 +695,7 @@ function Sidebar({ focusedId, tab, me }) {
 
 function HomeContent({ focusedId, groups, continueWatching, latest, favorites, onToggleFav }) {
   const hero = continueWatching[0] || groups[0]?.movies?.[0];
+  const heroArt = useArt(hero);
   const heroGroup = groups[0] || { name: "Telegram", avatar: "TG", palette: "linear-gradient(135deg,#2ea6ff,#5fc1ff)" };
   if (!hero) {
     // First-load empty state — no media discovered in any group yet.
@@ -711,7 +713,7 @@ function HomeContent({ focusedId, groups, continueWatching, latest, favorites, o
   return (
     <div className="content-scroll">
       <div className="hero">
-        <div className="hero-bg" style={{ background: hero.art }}></div>
+        <div className="hero-bg" style={{ background: heroArt }}></div>
         <div className="hero-grad"></div>
         <div className="hero-body">
           <div style={{ maxWidth: 760 }}>
@@ -1144,6 +1146,7 @@ export function GroupDetail({ group, onBack, onOpenMovie }) {
 export function Player({ context, onBack, onOpenExternal, onResolvedUrl, onControlsChange }) {
   const { movie, group, sender, resume } = context;
   const totalSecFallback = movie.runtime * 60;
+  const art = useArt(movie);
 
   const [playing, setPlaying] = useState(true);
   // Initial position: 0; we override from saved storage once it loads.
@@ -1420,7 +1423,7 @@ export function Player({ context, onBack, onOpenExternal, onResolvedUrl, onContr
           title={movie.title}
         />
       ) : (
-        <div className="player-canvas" style={{ background: movie.art }}></div>
+        <div className="player-canvas" style={{ background: art }}></div>
       )}
       <div className="player-vignette"></div>
 

@@ -18,6 +18,27 @@ export function fmtClock(sec) {
   return h > 0 ? `${h}:${mm}:${ss}` : `${m2}:${ss}`;
 }
 
+// Video id out of any YouTube URL shape we see in chat. Lives here rather than
+// in api.js so the self-check can import it without pulling in import.meta.env.
+export function youtubeId(url) {
+  const m = String(url || "").match(/(?:v=|youtu\.be\/|embed\/|shorts\/|\/v\/)([\w-]{11})/);
+  return m ? m[1] : null;
+}
+
+// Largest usable thumbnail on a Telegram document, or null.
+//
+// Must return an actual PhotoSize object, never an index. gramjs resolves a
+// numeric `thumb` as `correctThumbs[n]`, and when that misses it silently
+// falls back to `fileSize: doc.size` — i.e. it downloads the whole video.
+// Passing the object back means a miss here can only mean "no thumbnail".
+// PhotoPathSize (type "j") is an SVG outline, not an image; gramjs drops it.
+export function bestThumb(doc) {
+  const usable = (doc?.thumbs || []).filter((t) => typeof t?.type === "string" && t.type !== "j");
+  if (!usable.length) return null;
+  const bytes = (t) => t.size ?? (t.sizes ? Math.max(...t.sizes) : t.bytes?.length ?? 0);
+  return usable.reduce((a, b) => (bytes(b) > bytes(a) ? b : a));
+}
+
 export const TYPE_META = {
   file:   { label: "Telegram File", short: "FILE" },
   stream: { label: "Direct Stream", short: "STREAM" },

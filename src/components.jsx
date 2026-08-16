@@ -2,6 +2,7 @@ import { useLayoutEffect, useState } from "react";
 import { Icon } from "./Icon.jsx";
 import { focusedClass } from "./focus.js";
 import { TYPE_META, formatRuntime } from "./data.js";
+import { useArt } from "./useArt.js";
 
 export function TVStage({ children }) {
   const [scale, setScale] = useState(1);
@@ -68,9 +69,10 @@ export function Poster({ movie, focused, source, badge, showProgress = false, wi
   const isComplete = movie.progress >= 1;
   const showProg = showProgress && movie.progress > 0 && movie.progress < 1;
   const style = width ? { width } : undefined;
+  const art = useArt(movie);
   return (
     <div data-focus-id={focusId} className={`poster focusable ${focused ? "is-focused" : ""}`} style={style}>
-      <div className="poster-art" style={{ background: movie.art }}></div>
+      <div className="poster-art" style={{ background: art }}></div>
       <div className="poster-grad"></div>
       {badge && <div className={`poster-badge ${badge.tone || ""}`}>{badge.text}</div>}
       {!badge && movie.quality && <div className="poster-badge">{movie.quality}</div>}
@@ -145,9 +147,10 @@ export function MediaCard({ entry, focused, focusId }) {
   const { movie, sender, sentAgo } = entry;
   const tMeta = TYPE_META[movie.type];
   const iconMap = { file: "file", stream: "link", magnet: "magnet", yt: "youtube" };
+  const art = useArt(movie);
   return (
     <div data-focus-id={focusId} className={`media-card focusable ${focused ? "is-focused" : ""}`}>
-      <div className="mc-art" style={{ background: movie.art }}></div>
+      <div className="mc-art" style={{ background: art }}></div>
       <div className="mc-grad"></div>
       <div className={`mc-badge ${movie.type}`}>
         <Icon name={iconMap[movie.type]} size={12} />

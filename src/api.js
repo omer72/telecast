@@ -5,7 +5,7 @@
  * app).
  */
 
-import { formatRuntime as _formatRuntime } from "./data.js";
+import { bestThumb, formatRuntime as _formatRuntime, youtubeId } from "./data.js";
 import { pickInChatSubtitle, trackFromBuffer, tryOpenSubtitles } from "./subtitles.js";
 
 const API_ID = Number(import.meta.env.VITE_TG_API_ID || 0);
@@ -236,6 +236,63 @@ function hashString(s) {
 }
 function paletteFor(s) { return palettes[hashString(s) % palettes.length]; }
 function posterFor(s)  { return posters[hashString(s) % posters.length]; }
+
+// ---------------------------------------------------------------------------
+// Preview art
+//
+// Resolution order, first hit wins:
+//   1. TMDB poster    — not wired up; see previewArt() below
+//   2. YouTube thumb  — keyless img.youtube.com URL
+//   3. Telegram thumb — a real frame off the video document
+//   4. null           — caller falls back to movie.art's gradient
+// ---------------------------------------------------------------------------
+
+// movie.id -> Promise<string|null>. Caching the *promise* (not the resolved
+// value) also dedupes the burst of identical requests you get when a grid of
+// cards mounts at once, and survives a card unmounting mid-download.
+const _artCache = new Map();
+
+function ytThumb(movie) {
+  if (movie.type !== "yt") return null;
+  const id = youtubeId(movie._url);
+  return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : null;
+}
+
+async function tgThumb(movie) {
+  if (!movie._msg) return null;
+  const thumb = bestThumb(movie._doc);
+  if (!thumb) return null;
+  const client = await getClient();
+  // Tens of KB. Stripped sizes resolve from bytes already in hand, no network.
+  const buf = await client.downloadMedia(movie._msg, { thumb });
+  if (!buf?.length) return null;
+  return URL.createObjectURL(new Blob([buf]));
+}
+
+/**
+ * Resolve a real preview image for a card.
+ * Returns a CSS background value (`url("…")`) or null to keep the gradient.
+ */
+export function previewArt(movie) {
+  if (_artCache.has(movie.id)) return _artCache.get(movie.id);
+
+  const p = (async () => {
+    // 1. TMDB poster goes here once VITE_TMDB_KEY exists — search by
+    //    movie.title + movie.year, return url(image.tmdb.org/...).
+    const url =
+      ytThumb(movie) ||
+      (await tgThumb(movie).catch((err) => {
+        // Don't let one bad thumbnail break a grid, but don't hide it either —
+        // a silent catch here is what made the last bug invisible.
+        console.warn("[Telecast] thumbnail failed", movie.title, err);
+        return null;
+      }));
+    return url ? `url("${url}") center / cover no-repeat` : null;
+  })();
+
+  _artCache.set(movie.id, p);
+  return p;
+}
 
 function initialsOf(name) {
   if (!name) return "?";
