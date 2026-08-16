@@ -921,6 +921,17 @@ function SettingsContent({ focusedId, me, prefs, installed, positionsCount, favo
               </div>
               <Icon name="open" size={20} />
             </div>
+            {/* Not focusable — there's nothing to activate, so it stays out of
+                the D-pad grid rather than adding a dead stop. */}
+            <div className="settings-row">
+              <div>
+                <div className="sr-title">Version</div>
+                <div className="sr-sub">Telegram media player for Android TV</div>
+              </div>
+              <div className="sr-value">
+                {import.meta.env.VITE_APP_VERSION} ({import.meta.env.VITE_APP_BUILD})
+              </div>
+            </div>
           </div>
         </div>
       </div>
