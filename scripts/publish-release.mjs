@@ -37,14 +37,23 @@ try {
   process.exit(1);
 }
 
-// The notes shown in-app come from the argument, falling back to something
-// truthful rather than inventing a changelog.
-const notes = process.argv.slice(2).join(" ") || `Telecast ${versionName}`;
-
 // Downloader code lives in the landing page; read it rather than duplicating
 // it here, so there's still exactly one place it's written down.
 const indexHtml = readFileSync(indexPath, "utf8");
 const downloaderCode = indexHtml.match(/<div class="code">(\d+)<\/div>/)?.[1] || "";
+
+// Release note precedence: the argument, else whatever the existing manifest
+// already says for THIS version, else a generic fallback. Re-running publish
+// without an argument used to overwrite a written note with "Telecast 1.7",
+// and that note is what people read in Settings when they're behind.
+let previousNotes = "";
+try {
+  const prev = JSON.parse(readFileSync(manifestPath, "utf8"));
+  if (Number(prev.versionCode) === versionCode) previousNotes = String(prev.notes || "");
+} catch {
+  /* no manifest yet, or unreadable — fall through to the default */
+}
+const notes = process.argv.slice(2).join(" ") || previousNotes || `Telecast ${versionName}`;
 
 copyFileSync(apkPath, docsApk);
 
