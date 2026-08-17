@@ -61,6 +61,33 @@ export function bestThumb(doc) {
   return usable.reduce((a, b) => (bytes(b) > bytes(a) ? b : a));
 }
 
+/**
+ * Turn a fetched manifest into the shape the UI wants, or null if it isn't
+ * usable. Separate from the fetch so the decision rules can be tested without
+ * a network: a malformed manifest must read as "no information", never as
+ * "you're up to date" (which would hide real updates) and never as an update
+ * to some NaN version.
+ */
+export function parseManifest(v, currentCode) {
+  if (!v || typeof v !== "object") return null;
+  // Number("") is 0 and Number(null) is 0, so check for emptiness explicitly
+  // rather than letting a blank field become version zero.
+  const raw = v.versionCode;
+  if (raw === null || raw === undefined || raw === "") return null;
+  const latestCode = Number(raw);
+  if (!Number.isFinite(latestCode)) return null;
+  return {
+    latestCode,
+    latestName: String(v.versionName || latestCode),
+    notes: String(v.notes || ""),
+    downloaderCode: String(v.downloaderCode || ""),
+    // Compare versionCode, not the display name: it's the monotonic integer
+    // Android itself uses to decide an upgrade is an upgrade, and it needs no
+    // version-string parsing to get right.
+    updateAvailable: latestCode > currentCode,
+  };
+}
+
 export const TYPE_META = {
   file:   { label: "Telegram File", short: "FILE" },
   stream: { label: "Direct Stream", short: "STREAM" },

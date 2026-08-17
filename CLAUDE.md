@@ -7,16 +7,27 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 npm run dev          # vite dev server, http://localhost:5173
 npm run lint         # eslint
-npm test             # node self-checks (subtitles.test.mjs, art.test.mjs)
+npm test             # node self-checks (subtitles, art, authGuard, longPress)
 npm run build        # vite build → dist/
 npm run sync         # build + cap sync android
 npm run android      # build + sync + cap run android (deploy to device/emulator)
 npm run emu          # boot the `telecast_tv` AVD
+npm run publish      # copy the built release APK + version.json into docs/
 ```
+
+**Releasing.** Bump `versionCode`/`versionName` in `android/app/build.gradle` —
+the only place a version is authored; `vite.config.js` reads it into
+`import.meta.env.VITE_APP_VERSION`/`_BUILD`, so the Settings row and the update
+check follow automatically. Then `npm run sync`, `cd android && ./gradlew
+assembleRelease`, and `npm run publish -- "one-line release note"`. The publish
+script moves the APK, `version.json` and the landing-page label together on
+purpose: `version.json` is what tells installed apps to upgrade, so one that
+disagreed with the APK beside it would send people after a build that isn't
+there.
 
 Requires `.env.local` with `VITE_TG_API_ID` / `VITE_TG_API_HASH` (see `.env.example`).
 Without them `api.js` logs an error and every Telegram call fails — there is **no**
-mock fallback anymore (README still claims one; it was deleted from `data.js`).
+mock fallback anymore; it was deleted from `data.js`.
 
 ## Architecture
 
@@ -74,6 +85,14 @@ Two traps: `bestThumb()` must hand gramjs a **PhotoSize object, never an
 index** — on an unresolvable `thumb` gramjs falls through to `fileSize:
 doc.size` and downloads the whole video; and thumbnails are `blob:` URLs, so
 `_artCache` is capped and revokes on eviction.
+
+**Update check.** `update.js` fetches `docs/version.json` from the Pages site
+once per session and compares `versionCode` (the integer Android itself uses to
+decide an upgrade is an upgrade — no version-string parsing). Surfaced as a
+quiet line above the sidebar account footer and as detail on the Settings
+version row. Advisory only: installing an APK in-app would need
+`REQUEST_INSTALL_PACKAGES`, and Downloader already does that. It never throws —
+no network still boots a working app.
 
 **Persistence.** `storage.js` — resume positions, favorites, prefs via
 `@capacitor/preferences` with a localStorage fallback, both cached in module

@@ -7,6 +7,8 @@
  * already works.
  */
 
+import { parseManifest } from "./data.js";
+
 const VERSION_URL = "https://omer72.github.io/telecast/version.json";
 
 // Injected by vite.config.js from android/app/build.gradle — the same values
@@ -34,19 +36,9 @@ export function checkForUpdate() {
       // user was just told about shouldn't take ten minutes to show up.
       const res = await fetch(`${VERSION_URL}?t=${Date.now()}`, { cache: "no-store" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const v = await res.json();
-      const latestCode = Number(v.versionCode);
-      if (!Number.isFinite(latestCode)) throw new Error("manifest has no usable versionCode");
-      return {
-        latestCode,
-        latestName: String(v.versionName || latestCode),
-        notes: String(v.notes || ""),
-        downloaderCode: String(v.downloaderCode || ""),
-        // Compare versionCode, not the display name: it's the monotonic
-        // integer Android itself uses to decide an upgrade is an upgrade,
-        // and it doesn't need string version parsing to get right.
-        updateAvailable: latestCode > CURRENT_CODE,
-      };
+      const parsed = parseManifest(await res.json(), CURRENT_CODE);
+      if (!parsed) throw new Error("manifest has no usable versionCode");
+      return parsed;
     } catch (err) {
       console.warn("[Telecast] update check failed", err);
       return null;
