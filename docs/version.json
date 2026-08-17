@@ -1,0 +1,7 @@
+{
+  "versionCode": 8,
+  "versionName": "1.7",
+  "apk": "telecast.apk",
+  "downloaderCode": "9070172",
+  "notes": "Cleaner picture when the player controls hide, plus in-app update checks"
+}

@@ -7,6 +7,7 @@ import { fmtClock, formatRuntime } from "./data.js";
 import { getGroups, getMe, getMedia, resolveMediaUrl, searchGlobalMedia } from "./api.js";
 import { clearAllPositions, getPosition, loadFavorites, loadMovieFavorites, loadPositions, loadPrefs, savePosition, setPref, toggleFavorite, toggleMovieFavorite } from "./storage.js";
 import { PACKAGES, exitApp, isInstalled } from "./intent.js";
+import { checkForUpdate } from "./update.js";
 
 // =========================================================
 // PhoneEntry
@@ -390,6 +391,7 @@ export function Library({ tab, setTab, onSelectGroup, onOpenPlayer, onLogout }) 
   const [positions, setPositions] = useState({});
   const [favorites, setFavorites] = useState(new Set());
   const [movieFavs, setMovieFavs] = useState(new Set());
+  const [update, setUpdate] = useState(null);
   const [me, setMe] = useState(null);
   const [prefs, setPrefs] = useState({ resumeEnabled: true });
   const [installed, setInstalled] = useState({ vlc: false, mx: false });
@@ -423,6 +425,13 @@ export function Library({ tab, setTab, onSelectGroup, onOpenPlayer, onLogout }) 
         console.error("library load failed:", err);
       }
     })();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Advisory update check, once per session. Never blocks or nags modally.
+  useEffect(() => {
+    let cancelled = false;
+    checkForUpdate().then((u) => { if (!cancelled) setUpdate(u); });
     return () => { cancelled = true; };
   }, []);
 
@@ -691,7 +700,7 @@ export function Library({ tab, setTab, onSelectGroup, onOpenPlayer, onLogout }) 
 
   return (
     <div className="screen library" onClick={onScreenClick}>
-      <Sidebar focusedId={focusedId} tab={tab} me={me} />
+      <Sidebar focusedId={focusedId} tab={tab} me={me} update={update} />
       <div className="content">
         {tab === "home" && (
           <HomeContent
@@ -723,6 +732,7 @@ export function Library({ tab, setTab, onSelectGroup, onOpenPlayer, onLogout }) 
             installed={installed}
             positionsCount={Object.keys(positions).length}
             favoritesCount={favorites.size}
+            update={update}
           />
         )}
         {tab === "search" && (
@@ -744,7 +754,7 @@ export function Library({ tab, setTab, onSelectGroup, onOpenPlayer, onLogout }) 
   );
 }
 
-function Sidebar({ focusedId, tab, me }) {
+function Sidebar({ focusedId, tab, me, update }) {
   return (
     <div className="sidebar">
       {NAV_ITEMS.map((it) => {
@@ -761,6 +771,12 @@ function Sidebar({ focusedId, tab, me }) {
           </div>
         );
       })}
+      {update?.updateAvailable && (
+        <div className="sidebar-update">
+          <Icon name="download" size={14} />
+          <span>Version {update.latestName} available</span>
+        </div>
+      )}
       {me && (
         <div className="sidebar-foot">
           <div className="avatar" style={{ background: me.avatarColor }}>{me.avatar}</div>
@@ -972,7 +988,7 @@ function FavoritesContent({ focusedId, entries, movieFavs }) {
   );
 }
 
-function SettingsContent({ focusedId, me, prefs, installed, positionsCount, favoritesCount }) {
+function SettingsContent({ focusedId, me, prefs, installed, positionsCount, favoritesCount, update }) {
   const installedCount = (installed?.vlc ? 1 : 0) + (installed?.mx ? 1 : 0) + 1; // +1 for system
   const extDetail = [
     installed?.vlc ? "VLC ✓" : "VLC —",
@@ -1054,9 +1070,20 @@ function SettingsContent({ focusedId, me, prefs, installed, positionsCount, favo
             <div className="settings-row">
               <div>
                 <div className="sr-title">Version</div>
-                <div className="sr-sub">Telegram media player for Android TV</div>
+                <div className="sr-sub">
+                  {update === null
+                    ? "Telegram media player for Android TV"
+                    : update.updateAvailable
+                      ? `Version ${update.latestName} is available${update.notes ? ` — ${update.notes}` : ""}${
+                          update.downloaderCode ? `. Open Downloader and enter ${update.downloaderCode}.` : ""
+                        }`
+                      : "Up to date"}
+                </div>
               </div>
-              <div className="sr-value">
+              <div
+                className="sr-value"
+                style={update?.updateAvailable ? { color: "var(--warn)", fontWeight: 600 } : undefined}
+              >
                 {import.meta.env.VITE_APP_VERSION} ({import.meta.env.VITE_APP_BUILD})
               </div>
             </div>

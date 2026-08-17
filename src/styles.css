@@ -401,6 +401,23 @@ body {
   margin-left: auto;
 }
 
+/* Update nudge above the account footer. Visible on every Library screen, but
+   quiet — it's information, not a dialog demanding attention. */
+.sidebar-update {
+  margin-top: auto;
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--r-md);
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: var(--warn);
+  font-size: 13px; font-weight: 500;
+  line-height: 1.3;
+}
+/* The footer claims margin-top:auto to sit at the bottom; when the update line
+   is present it takes that role and the footer follows it. */
+.sidebar-update + .sidebar-foot { margin-top: 14px; }
+
 .sidebar-foot {
   margin-top: auto;
   padding-top: 24px;

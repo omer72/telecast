@@ -10,6 +10,7 @@
     "test": "node src/subtitles.test.mjs && node src/art.test.mjs && node src/authGuard.test.mjs && node src/longPress.test.mjs",
     "preview": "vite preview",
     "sync": "vite build && cap sync android",
+    "publish": "node scripts/publish-release.mjs",
     "android": "vite build && cap sync android && cap run android",
     "android:open": "cap open android",
     "emu": "$ANDROID_HOME/emulator/emulator -avd telecast_tv -no-snapshot-load -no-snapshot-save -no-boot-anim -dns-server 8.8.8.8,1.1.1.1"
