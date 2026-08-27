@@ -19,7 +19,8 @@ const gradlePath = resolve(root, "android/app/build.gradle");
 const apkPath = resolve(root, "android/app/build/outputs/apk/release/app-release.apk");
 const docsApk = resolve(root, "docs/telecast.apk");
 const manifestPath = resolve(root, "docs/version.json");
-const indexPath = resolve(root, "docs/index.html");
+const pagePaths = ["docs/index.html", "docs/he.html"].map((p) => resolve(root, p));
+const indexPath = pagePaths[0];
 
 const gradle = readFileSync(gradlePath, "utf8");
 const versionName = gradle.match(/versionName\s+"([^"]+)"/)?.[1];
@@ -62,19 +63,20 @@ writeFileSync(
   JSON.stringify({ versionCode, versionName, apk: "telecast.apk", downloaderCode, notes }, null, 2) + "\n"
 );
 
-// Landing page label: "v1.6 · Android TV 7.0 or newer …"
-const updated = indexHtml.replace(
-  /(<p class="hero-note">)v[\d.]+/,
-  `$1v${versionName}`
-);
-if (updated === indexHtml && !indexHtml.includes(`>v${versionName} `)) {
-  console.warn("! Could not update the version label in docs/index.html — check it by hand");
-} else {
-  writeFileSync(indexPath, updated);
+// Landing page label: "v1.6 · Android TV 7.0 or newer …" — on every
+// translation of the page, so none of them advertises a stale version.
+for (const pagePath of pagePaths) {
+  const html = pagePath === indexPath ? indexHtml : readFileSync(pagePath, "utf8");
+  const updated = html.replace(/(<p class="hero-note">)v[\d.]+/, `$1v${versionName}`);
+  if (updated === html && !html.includes(`>v${versionName} `)) {
+    console.warn(`! Could not update the version label in ${pagePath} — check it by hand`);
+  } else {
+    writeFileSync(pagePath, updated);
+  }
 }
 
 const mib = (apkStat.size / 1024 / 1024).toFixed(1);
 console.log(`Published ${versionName} (${versionCode})`);
 console.log(`  docs/telecast.apk   ${apkStat.size} bytes (${mib} MiB)`);
 console.log(`  docs/version.json   downloaderCode=${downloaderCode || "(none found)"}`);
-console.log(`  docs/index.html     label -> v${versionName}`);
+console.log(`  docs/*.html         label -> v${versionName}`);

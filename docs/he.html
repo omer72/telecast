@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Telecast — נגן מדיה של טלגרם ל-Android TV</title>
+<meta name="description" content="Telecast הופך את הסרטים והסדרות שמשותפים בקבוצות הטלגרם שלך לספרייה בטלוויזיה, שאפשר לדפדף בה ולנגן ממנה עם השלט." />
+<link rel="alternate" hreflang="en" href="index.html" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* sticker palette */
+    --ink:#26265e; --paper:#f3f6ff; --grape:#5b3df5;
+    --sunny:#ffc53d; --bubblegum:#ff7ba9; --mint:#3ecfaf;
+    --text:var(--ink); --dim:rgba(38,38,94,.72); --mute:rgba(38,38,94,.5);
+    --sticker:4px 4px 0 0 var(--ink); --sticker-lg:8px 8px 0 0 var(--ink);
+    --display:'Rubik',system-ui,sans-serif; --body:'Rubik',system-ui,sans-serif;
+    --mono:'JetBrains Mono',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--paper); color:var(--text);
+    font-family:var(--body); font-size:17px; line-height:1.7; font-weight:500;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1080px; margin:0 auto; padding:0 24px}
+  a{color:var(--grape); text-underline-offset:3px}
+
+  /* hero */
+  header{
+    position:relative; overflow:hidden;
+    border-bottom:2px solid var(--ink);
+    background:
+      radial-gradient(620px 480px at 88% -15%, rgba(255,197,61,.55), transparent 65%),
+      radial-gradient(560px 420px at 12% -5%, rgba(255,123,169,.45), transparent 65%),
+      radial-gradient(520px 400px at 35% 110%, rgba(62,207,175,.40), transparent 65%),
+      var(--paper);
+  }
+  .hero{padding:84px 0 72px; position:relative}
+  .brand{display:flex; align-items:center; gap:14px; margin-bottom:38px}
+  .brand-mark{
+    width:52px; height:52px; border-radius:16px; display:grid; place-items:center;
+    background:var(--grape); color:#fff; border:2px solid var(--ink); box-shadow:var(--sticker);
+    font-family:var(--display); font-weight:700; font-size:24px;
+  }
+  .brand-name{font-family:var(--display); font-weight:600; font-size:23px}
+  .lang{margin-inline-start:auto; font-family:var(--display); font-weight:600; font-size:15px}
+  h1{
+    font-family:var(--display); font-weight:700; letter-spacing:0;
+    font-size:clamp(34px,5.4vw,60px); line-height:1.12; margin:0 0 20px;
+  }
+  h1 em{
+    font-style:normal; color:var(--grape);
+    text-decoration:underline; text-decoration-color:var(--sunny);
+    text-decoration-thickness:8px; text-underline-offset:6px;
+  }
+  .lede{font-size:clamp(17px,2.2vw,21px); color:var(--dim); max-width:640px; margin:0 0 34px}
+  .cta-row{display:flex; flex-wrap:wrap; gap:16px; align-items:center}
+  .btn{
+    display:inline-flex; align-items:center; gap:10px;
+    padding:15px 26px; border-radius:999px; text-decoration:none;
+    font-family:var(--display); font-weight:600; font-size:17px;
+    border:2px solid var(--ink); box-shadow:var(--sticker);
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .btn:hover{transform:translate(2px,-2px); box-shadow:var(--sticker-lg)}
+  .btn:active{transform:translate(-2px,2px); box-shadow:2px 2px 0 0 var(--ink)}
+  .btn-primary{background:var(--grape); color:#fff}
+  .btn-ghost{background:var(--sunny); color:var(--ink)}
+  .hero-note{margin-top:20px; font-size:14px; color:var(--mute)}
+
+  /* sections */
+  section{padding:76px 0; border-bottom:2px solid var(--ink)}
+  h2{
+    font-family:var(--display); font-weight:700;
+    font-size:clamp(27px,3.2vw,36px); margin:0 0 12px;
+  }
+  .sub{color:var(--dim); max-width:660px; margin:0 0 40px}
+  h3{font-family:var(--display); font-weight:600; font-size:20px; margin:0 0 6px}
+
+  /* downloader callout */
+  .code-card{
+    display:flex; flex-wrap:wrap; gap:32px; align-items:center; justify-content:space-between;
+    padding:34px; border-radius:32px; border:2px solid var(--ink);
+    background:var(--mint); box-shadow:var(--sticker-lg); color:var(--ink);
+  }
+  .code-box{
+    text-align:center; background:#fff; border:2px solid var(--ink);
+    border-radius:24px; padding:20px 30px; box-shadow:var(--sticker);
+  }
+  .code-label{font-size:13px; letter-spacing:.06em; color:var(--grape); margin-bottom:8px}
+  .code{
+    font-family:var(--mono); font-weight:600; font-size:clamp(40px,7vw,58px);
+    letter-spacing:.06em; line-height:1; color:var(--ink); direction:ltr;
+  }
+
+  /* steps */
+  ol.steps{counter-reset:s; list-style:none; padding:0; margin:0; display:grid; gap:20px}
+  ol.steps li{
+    counter-increment:s; position:relative; padding:22px 24px; padding-inline-start:74px;
+    background:#fff; border:2px solid var(--ink); border-radius:24px; box-shadow:var(--sticker);
+  }
+  ol.steps li::before{
+    content:counter(s); position:absolute; inset-inline-start:20px; top:20px;
+    width:38px; height:38px; border-radius:50%; display:grid; place-items:center;
+    background:var(--sunny); color:var(--ink); border:2px solid var(--ink);
+    font-family:var(--display); font-weight:700; font-size:17px;
+  }
+  ol.steps p{margin:4px 0 0; color:var(--dim); font-size:15.5px}
+
+  /* features */
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:22px}
+  .card{
+    padding:26px; background:#fff; border:2px solid var(--ink);
+    border-radius:28px; box-shadow:var(--sticker);
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .card:hover{transform:translate(2px,-2px); box-shadow:var(--sticker-lg)}
+  .card p{margin:0; color:var(--dim); font-size:15.5px}
+  .ico{
+    width:52px; height:52px; border-radius:16px; display:grid; place-items:center;
+    background:var(--bubblegum); color:var(--ink); border:2px solid var(--ink);
+    font-family:var(--display); font-weight:700; font-size:20px; margin-bottom:16px;
+  }
+  /* rotate the sticker palette across the icon row */
+  .card:nth-child(3n+2) .ico{background:var(--sunny)}
+  .card:nth-child(3n) .ico{background:var(--mint)}
+
+  /* shots */
+  figure{margin:0 0 48px}
+  figure img{
+    width:100%; height:auto; display:block; border-radius:28px;
+    border:2px solid var(--ink); box-shadow:var(--sticker-lg); background:#000;
+  }
+  figcaption{margin-top:16px; color:var(--dim); font-size:14.5px}
+
+  /* remote keys */
+  .keys{display:grid; gap:10px; margin:0; padding:0}
+  .keys div{display:flex; gap:16px; align-items:baseline; padding:12px 0; border-bottom:2px dashed rgba(38,38,94,.2)}
+  kbd{
+    font-family:var(--mono); font-size:13px; font-weight:600; direction:ltr;
+    background:#fff; border:2px solid var(--ink); box-shadow:2px 2px 0 0 var(--ink);
+    border-radius:10px; padding:5px 10px; color:var(--ink); white-space:nowrap; min-width:96px; text-align:center;
+  }
+  .keys span{color:var(--dim); font-size:15.5px}
+
+  .note{
+    padding:22px 24px; border-radius:24px; font-size:15.5px; color:var(--ink);
+    background:var(--sunny); border:2px solid var(--ink); box-shadow:var(--sticker);
+  }
+  .note strong{color:var(--ink)}
+
+  footer{padding:48px 0 64px; color:var(--dim); font-size:14.5px}
+  footer a{color:var(--grape)}
+  @media (max-width:640px){
+    .hero{padding:56px 0 48px} section{padding:56px 0} .code-card{padding:26px}
+    .code-box{width:100%}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap hero">
+    <div class="brand">
+      <div class="brand-mark">T</div>
+      <div class="brand-name">Telecast</div>
+      <a class="lang" href="index.html" lang="en" dir="ltr">English</a>
+    </div>
+    <h1>הקבוצות שלך בטלגרם,<br><em>על המסך הגדול.</em></h1>
+    <p class="lede">
+      Telecast מתחבר לחשבון הטלגרם שלך, סורק את הצ'אטים שאתם כבר נמצאים בהם ומחפש
+      בהם סרטונים, והופך אותם לספרייה שמדפדפים בה עם השלט — בלי טלפון, בלי כבלים
+      ובלי הורדות לנהל.
+    </p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="telecast.apk" download>הורדת ה-APK · 3.7 MB</a>
+      <a class="btn btn-ghost" href="#install">התקנה עם Downloader</a>
+    </div>
+    <p class="hero-note">v1.7 · Android TV 7.0 ומעלה · Google TV, Fire TV, NVIDIA Shield, ממירי אנדרואיד</p>
+  </div>
+</header>
+
+<section id="install">
+  <div class="wrap">
+    <h2>איך מתקינים</h2>
+    <p class="sub">
+      הדרך הפשוטה ביותר בטלוויזיה היא אפליקציית <strong>Downloader</strong> החינמית של AFTVnews —
+      היא נמצאת בכל חנות של Android TV / Fire TV. מתקינים אותה קודם, ואז מזינים את הקוד שלמטה.
+    </p>
+
+    <div class="code-card">
+      <div>
+        <h3 style="font-size:22px">פותחים את Downloader ומזינים את הקוד</h3>
+        <p style="color:var(--dim); margin:6px 0 0; max-width:420px">
+          הקוד מוריד את ה-APK ישירות מהדף הזה. בלי מחשב, בלי דיסק און קי ובלי adb.
+        </p>
+      </div>
+      <div class="code-box">
+        <div class="code-label">קוד ל-Downloader</div>
+        <div class="code">9070172</div>
+      </div>
+    </div>
+
+    <ol class="steps" style="margin-top:34px">
+      <li>
+        <h3>מאשרים התקנות מ-Downloader</h3>
+        <p>הגדרות → אפליקציות → גישה מיוחדת → התקנת אפליקציות לא מזוהות → מפעילים עבור <strong>Downloader</strong>.
+           אנדרואיד נותן את ההרשאה הזו לכל אפליקציה בנפרד, ולכן זו חייבת להיות האפליקציה שממנה מתקינים.</p>
+      </li>
+      <li>
+        <h3>מזינים 9070172 ולוחצים Go</h3>
+        <p>Downloader מוריד את ה-APK ומציע להתקין. בוחרים Install ואז Done.</p>
+      </li>
+      <li>
+        <h3>מפעילים את Telecast משורת הבית</h3>
+        <p>האפליקציה נרשמת כאפליקציית טלוויזיה אמיתית, ולכן היא מופיעה ליד השאר — ולא קבורה במגירת אפליקציות הטלפון.</p>
+      </li>
+      <li>
+        <h3>מתחברים עם מספר הטלפון</h3>
+        <p>מקלידים את המספר על המקלדת, ואז את הקוד בן 5 הספרות שטלגרם שולח למכשירים האחרים שלכם.
+           אם יש לכם אימות דו-שלבי, יופיע אחר כך מסך של סיסמת הענן. החיבור נשמר על אותה טלוויזיה.</p>
+      </li>
+    </ol>
+
+    <p class="note" style="margin-top:26px">
+      <strong>יש לכם כבר Telecast מותקן?</strong> אם הוא הותקן מגרסה אחרת, אנדרואיד מסרב לשדרג
+      ומציג הודעה יבשה: „האפליקציה לא הותקנה”. מסירים קודם את העותק הישן
+      (הגדרות → אפליקציות → Telecast → הסרה), ואז מתקינים מחדש.
+      <br><br>
+      עדיין מסרב מיד אחרי ההסרה? <strong>מפעילים מחדש את הטלוויזיה</strong> ואז מתקינים. אנדרואיד
+      עשוי להחזיק ברישום של האפליקציה הישנה עד להפעלה מחדש של המערכת, וכל עוד הוא מחזיק בו הוא
+      דוחה את העותק החדש.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>איך משתמשים</h2>
+    <p class="sub">הכול מונע מלחצני הכיוון. החצים מזיזים, OK פותח, BACK עולה שלב אחורה.</p>
+
+    <figure>
+      <img src="img/signin.png" alt="מסך ההתחברות של Telecast: מספר טלפון שהוקלד על מקלדת מסך, ולצידו הסבר על ההתחברות לטלגרם." />
+      <figcaption>
+        <strong>התחברות</strong> — מקישים את המספר על המקלדת עם לחצני הכיוון, ואז את הקוד בן 5 הספרות
+        שטלגרם שולח למכשירים האחרים שלכם. לאימות הדו-שלבי יש מסך נפרד.
+        החיבור נשמר על אותה טלוויזיה.
+      </figcaption>
+    </figure>
+
+    <figure>
+      <img src="img/chats.png" alt="מסך הצ'אטים של Telecast: רשת בת ארבע עמודות של קבוצות וערוצי טלגרם, כל כרטיס מציג שם, הודעה אחרונה וכמה סרטונים זוהו." />
+      <figcaption>
+        <strong>צ'אטים</strong> — כל הקבוצות והערוצים שאתם חברים בהם. פותחים אחד ו-Telecast סורק את
+        ההודעות האחרונות שלו ומחפש סרטונים. מסמנים בכוכב את אלה שחשובים לכם והם עולים לראש הרשימה.
+      </figcaption>
+    </figure>
+
+    <figure>
+      <img src="img/group.png" alt="ערוץ טלגרם פתוח ב-Telecast, ובו 189 סרטים שזוהו כרשת של כרטיסים צבעוניים עם אורך, איכות וגודל קובץ." />
+      <figcaption>
+        <strong>בתוך צ'אט</strong> — כל סרטון שנמצא, עם אורך, איכות וגודל. מסננים לפי
+        סרטים, סדרות או קבצים. לוחצים OK על כרטיס והנגינה מתחילה.
+      </figcaption>
+    </figure>
+
+    <figure>
+      <img src="img/openwith.png" alt="חלון „פתיחה באמצעות” המציג את נגן Telecast, VLC for Android, MX Player וברירת המחדל של המערכת, כשהנגנים שאינם מותקנים מוצגים באפור." />
+      <figcaption>
+        <strong>פתיחה באמצעות…</strong> — מנגנים בנגן הפנימי של Telecast, או מעבירים את הסרטון ל-VLC
+        או ל-MX Player. נגנים שאינם מותקנים אצלכם מוצגים באפור, במקום להיכשל בשקט.
+      </figcaption>
+    </figure>
+
+    <div class="keys">
+      <div><kbd>↑ ↓ ← →</kbd><span>ניווט. יציאה מהרשת חוזרת לתפריט, וכניסה חזרה אליה.</span></div>
+      <div><kbd>OK</kbd><span>פותח צ'אט, מנגן סרטון, מחליף מצב של הגדרה.</span></div>
+      <div><kbd>לחיצה ארוכה על OK</kbd><span>מסמן סרט בכוכב. לסרטים המסומנים יש לשונית מועדפים משלהם בתפריט.</span></div>
+      <div><kbd>BACK</kbd><span>שלב אחד אחורה. במסך הראשי, לחיצה כפולה יוצאת מהאפליקציה.</span></div>
+      <div><kbd>← →</kbd><span>בזמן נגינה, מדלגים קדימה ואחורה. OK משהה וממשיך.</span></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>מה זה עושה</h2>
+    <p class="sub">בנוי לצורה שבה אנשים באמת משתפים סרטים — כקבצים וכקישורים שנזרקים לצ'אט קבוצתי.</p>
+    <div class="grid">
+      <div class="card">
+        <div class="ico">▶</div>
+        <h3>מזרים, לא מוריד</h3>
+        <p>קבצים מטלגרם מתחילים לנגן מיד ונשארים ניתנים לדילוג, במקום להמתין להורדה של כמה ג'יגה-בייט.</p>
+      </div>
+      <div class="card">
+        <div class="ico">⏱</div>
+        <h3>זוכר איפה הפסקתם</h3>
+        <p>נקודת העצירה נשמרת לכל סרטון ושורדת הפעלה מחדש. „ממשיכים לצפות” מופיע במסך הבית.</p>
+      </div>
+      <div class="card">
+        <div class="ico">CC</div>
+        <h3>מוצא כתוביות</h3>
+        <p>משתמש בקבצי כתוביות ששותפו באותו צ'אט כשהם מתאימים לסרטון, ואם לא — נופל ל-OpenSubtitles.</p>
+      </div>
+      <div class="card">
+        <div class="ico">🔗</div>
+        <h3>מבין גם קישורים</h3>
+        <p>כתובות וידאו ישירות, קישורי מגנט וקישורי יוטיוב שפורסמו בצ'אט מופיעים כולם בספרייה, מתויגים לפי סוג.</p>
+      </div>
+      <div class="card">
+        <div class="ico">🔍</div>
+        <h3>חיפוש בכל מקום</h3>
+        <p>חיפוש בצ'אטים שלכם ובחיפוש הווידאו של טלגרם כולו, בבת אחת ובכל שפה.</p>
+      </div>
+      <div class="card">
+        <div class="ico">📺</div>
+        <h3>עשוי בשביל השלט</h3>
+        <p>אפליקציית leanback אמיתית: ניווט מלא בלחצני הכיוון, פריסת 1080p לרוחב, ומקום בשורת הבית של הטלוויזיה.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>כדאי לדעת</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>החשבון שלכם נשאר שלכם</h3>
+        <p>Telecast מדבר עם טלגרם ישירות ב-MTProto. אין שרת באמצע — החיבור נשמר רק על אותה
+           טלוויזיה, והתנתקות מוחקת אותו.</p>
+      </div>
+      <div class="card">
+        <h3>הוא מציג את מה שכבר יש לכם</h3>
+        <p>Telecast לא מאחסן, לא מאנדקס ולא משתף שום דבר. הוא רק מציג מדיה שכבר נמצאת בצ'אטים
+           בטלגרם שהחשבון שלכם חבר בהם.</p>
+      </div>
+      <div class="card">
+        <h3>העברת קובץ ל-VLC לוקחת רגע</h3>
+        <p>אפליקציות אחרות לא יכולות לקרוא את ההזרמה של טלגרם ישירות, ולכן בחירה ב-VLC מורידה קודם
+           את הקובץ ומציגה התקדמות. לנגן הפנימי אין המתנה כזו.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>
+      Telecast · <a href="https://github.com/omer72/telecast">הקוד ב-GitHub</a> ·
+      נבנה עם React, Vite, Capacitor ו<a href="https://github.com/gram-js/gramjs">gramjs</a>
+    </p>
+    <p style="margin-top:6px">לא מסונף לטלגרם. Telegram הוא סימן מסחרי של Telegram Messenger LLP.</p>
+  </div>
+</footer>
+
+</body>
+</html>
