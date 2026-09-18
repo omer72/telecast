@@ -1,7 +1,7 @@
 {
-  "versionCode": 8,
-  "versionName": "1.7",
+  "versionCode": 9,
+  "versionName": "1.8",
   "apk": "telecast.apk",
   "downloaderCode": "9070172",
-  "notes": "Cleaner picture when the player controls hide, plus in-app update checks"
+  "notes": "Movies start much faster — streaming now fetches several chunks at once"
 }

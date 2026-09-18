@@ -32,3 +32,4 @@ keystore.properties
 
 # Local sideload staging (APK is published under docs/)
 .apk-serve/
+.gstack/

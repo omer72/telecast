@@ -78,31 +78,40 @@ async function handleStream(request, streamId) {
   const length = end - start + 1;
 
   // Stream chunks from main thread into the Response body.
-  const CHUNK_BYTES = 512 * 1024; // 512 KB per round-trip
+  // Chunks are fetched with INFLIGHT requests in flight at once: each one costs
+  // a postMessage + an MTProto round-trip, so fetching them strictly one after
+  // the other caps throughput at one chunk per RTT — that's the startup stall.
+  // pull() (not a loop in start()) gives us the player's backpressure for free,
+  // so we never download further ahead than it asks for.
+  const CHUNK_BYTES = 512 * 1024; // gramjs caps upload.getFile at 512 KB
+  const INFLIGHT = 4;
+  let pos = start;
+  const queue = [];
+  const fill = () => {
+    while (queue.length < INFLIGHT && pos <= end) {
+      const want = Math.min(CHUNK_BYTES, end - pos + 1);
+      const p = askMain(streamId, pos, want);
+      p.catch(() => {}); // a discarded in-flight chunk must not go unhandled
+      queue.push(p);
+      pos += want;
+    }
+  };
   const stream = new ReadableStream({
-    async pull(controller) {
-      // Implemented in start() with a loop instead — pull is a no-op.
+    start() {
+      fill();
     },
-    async start(controller) {
-      let pos = start;
-      while (pos <= end) {
-        const want = Math.min(CHUNK_BYTES, end - pos + 1);
-        try {
-          const resp = await askMain(streamId, pos, want);
-          const buf = resp.buffer;
-          if (!buf || buf.byteLength === 0) break;
-          controller.enqueue(new Uint8Array(buf));
-          pos += buf.byteLength;
-        } catch (err) {
-          controller.error(err);
-          return;
-        }
+    async pull(controller) {
+      if (!queue.length) return controller.close();
+      const buf = (await queue.shift()).buffer;
+      if (!buf || buf.byteLength === 0) {
+        queue.length = 0;
+        return controller.close();
       }
-      controller.close();
+      controller.enqueue(new Uint8Array(buf));
+      fill();
     },
     cancel() {
-      // Best-effort: nothing to clean up on this side; main thread aborts on
-      // navigate via the AbortController it owns per stream.
+      queue.length = 0;
     },
   });
 
