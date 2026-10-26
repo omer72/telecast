@@ -42,6 +42,20 @@ export function PhoneEntry({ onSubmit, busy = false, error = "" }) {
 
   const { focusedId } = useFocusGrid(rows, { onEnter: handleEnter, initial: "kok" });
 
+  // Auto-send once the number looks complete: a short pause at 10+ digits, so
+  // a longer number still being typed isn't sent early. The ref keeps a number
+  // that already failed from being re-sent on every render; OK still retries.
+  // shortcut: length-only check, no per-country rules — add libphonenumber-js if early sends bite.
+  const autoSent = useRef("");
+  useEffect(() => {
+    if (phone.length < 10 || busy || autoSent.current === phone) return;
+    const t = setTimeout(() => {
+      autoSent.current = phone;
+      onSubmit(phone);
+    }, 1200);
+    return () => clearTimeout(t);
+  }, [phone, busy, onSubmit]);
+
   // Allow direct number-key input (real TV remotes have number buttons too,
   // and it's massively friendlier when driving the app from a desktop
   // keyboard). Handled in the capture phase so we run before useFocusGrid's
