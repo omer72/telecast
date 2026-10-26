@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Telecast — Telegram media player for Android TV</title>
-<meta name="description" content="Telecast turns the movies and shows shared in your Telegram groups into a TV library you can browse and play with the remote." />
+<meta name="description" content="Your Telegram videos, on the TV, with the remote. Telecast doesn't host or distribute content — it only plays videos already in your Telegram chats." />
 <link rel="alternate" hreflang="he" href="he.html" />
 <link rel="icon" type="image/svg+xml" href="favicon.svg" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -39,8 +39,8 @@
       radial-gradient(520px 400px at 65% 110%, rgba(62,207,175,.40), transparent 65%),
       var(--paper);
   }
-  .hero{padding:84px 0 72px; position:relative}
-  .brand{display:flex; align-items:center; gap:14px; margin-bottom:38px}
+  .hero{padding:48px 0 40px; position:relative}
+  .brand{display:flex; align-items:center; gap:14px; margin-bottom:22px}
   .brand-mark{
     width:52px; height:52px; border-radius:16px; display:grid; place-items:center;
     background:var(--grape); color:#fff; border:2px solid var(--ink); box-shadow:var(--sticker);
@@ -50,14 +50,45 @@
   .lang{margin-inline-start:auto; font-family:var(--display); font-weight:600; font-size:15px}
   h1{
     font-family:var(--display); font-weight:700; letter-spacing:-.01em;
-    font-size:clamp(38px,6vw,68px); line-height:1.05; margin:0 0 20px;
+    font-size:clamp(32px,5vw,56px); line-height:1.08; margin:0 0 14px;
   }
   h1 em{
     font-style:normal; color:var(--grape);
     text-decoration:underline; text-decoration-color:var(--sunny);
     text-decoration-thickness:8px; text-underline-offset:6px;
   }
-  .lede{font-size:clamp(17px,2.2vw,21px); color:var(--dim); max-width:620px; margin:0 0 34px}
+  .lede{font-size:clamp(16px,2vw,19px); color:var(--dim); max-width:640px; margin:0 0 18px}
+  .trust{
+    margin:0 0 14px; padding:10px 14px; max-width:680px;
+    background:#fff; border:2px solid var(--ink); border-radius:18px;
+    box-shadow:2px 2px 0 0 var(--ink);
+    font-size:15.5px; line-height:1.4; color:var(--ink);
+  }
+  .trust strong{font-weight:800}
+  .quick-install{
+    display:flex; flex-wrap:wrap; gap:16px 28px; align-items:center;
+    margin:0 0 16px; padding:16px 18px;
+    background:var(--mint); color:var(--ink);
+    border:2px solid var(--ink); border-radius:28px; box-shadow:var(--sticker);
+  }
+  .quick-install .code-box{padding:12px 22px}
+  .quick-install .code{font-size:clamp(42px,8vw,56px)}
+  ol.quick-steps{
+    counter-reset:q; list-style:none; margin:0; padding:0;
+    display:grid; gap:8px; flex:1 1 240px;
+  }
+  ol.quick-steps li{
+    counter-increment:q; display:flex; gap:10px; align-items:center;
+    font-size:16px; line-height:1.35; font-weight:700;
+  }
+  ol.quick-steps li::before{
+    content:counter(q); flex:0 0 auto;
+    width:26px; height:26px; border-radius:50%; display:grid; place-items:center;
+    background:var(--sunny); color:var(--ink); border:2px solid var(--ink);
+    font-family:var(--display); font-weight:700; font-size:14px;
+  }
+  .more{margin:0 0 18px; font-size:15.5px}
+  .more a{font-family:var(--display); font-weight:700}
   .cta-row{display:flex; flex-wrap:wrap; gap:16px; align-items:center}
   .btn{
     display:inline-flex; align-items:center; gap:10px;
@@ -70,7 +101,7 @@
   .btn:active{transform:translate(2px,2px); box-shadow:2px 2px 0 0 var(--ink)}
   .btn-primary{background:var(--grape); color:#fff}
   .btn-ghost{background:var(--sunny); color:var(--ink)}
-  .hero-note{margin-top:20px; font-size:14px; color:var(--mute)}
+  .hero-note{margin-top:16px; font-size:14px; font-weight:700; color:rgba(38,38,94,.88)}
 
   /* sections */
   section{padding:76px 0; border-bottom:2px solid var(--ink)}
@@ -100,11 +131,11 @@
   /* steps */
   ol.steps{counter-reset:s; list-style:none; padding:0; margin:0; display:grid; gap:20px}
   ol.steps li{
-    counter-increment:s; position:relative; padding:22px 24px 22px 74px;
+    counter-increment:s; position:relative; padding:22px 24px; padding-inline-start:74px;
     background:#fff; border:2px solid var(--ink); border-radius:24px; box-shadow:var(--sticker);
   }
   ol.steps li::before{
-    content:counter(s); position:absolute; left:20px; top:20px;
+    content:counter(s); position:absolute; inset-inline-start:20px; top:20px;
     width:38px; height:38px; border-radius:50%; display:grid; place-items:center;
     background:var(--sunny); color:var(--ink); border:2px solid var(--ink);
     font-family:var(--display); font-weight:700; font-size:17px;
@@ -156,7 +187,23 @@
   footer{padding:48px 0 64px; color:var(--dim); font-size:14.5px}
   footer a{color:var(--grape)}
   @media (max-width:640px){
-    .hero{padding:56px 0 48px} section{padding:56px 0} .code-card{padding:26px}
+    .hero{padding:20px 0 24px}
+    .brand{margin-bottom:12px}
+    .brand-mark{width:42px; height:42px; border-radius:14px; font-size:20px}
+    h1{font-size:28px; line-height:1.12; margin:0 0 10px}
+    .trust{font-size:14.5px; line-height:1.35; margin:0 0 10px; padding:8px 12px}
+    .lede{font-size:15.5px; line-height:1.4; margin:0 0 12px}
+    .quick-install{padding:12px 14px; gap:10px; margin:0 0 12px}
+    .quick-install .code-box{padding:8px 12px}
+    .quick-install .code{font-size:44px}
+    ol.quick-steps{gap:6px}
+    ol.quick-steps li{font-size:14.5px}
+    .more{margin:0 0 12px}
+    .btn{padding:12px 18px; font-size:16px}
+    .cta-row{gap:10px}
+    .hero-note{margin-top:12px}
+    section{padding:56px 0}
+    .code-card{padding:26px}
     .code-box{width:100%}
   }
 </style>
@@ -170,15 +217,27 @@
       <div class="brand-name">Telecast</div>
       <a class="lang" href="he.html" lang="he" dir="rtl">עברית</a>
     </div>
-    <h1>Your Telegram groups,<br><em>on the big screen.</em></h1>
+    <h1>Your Telegram videos, on the TV, <em>with the remote</em></h1>
+    <p class="trust"><strong>Telecast doesn't host or distribute content</strong> — only videos already in your Telegram chats.</p>
     <p class="lede">
-      Telecast signs into your Telegram account, scans the chats you're already in for
-      videos, and turns them into a library you browse with the TV remote — no phone,
-      no cables, no downloads to manage.
+      Sign in, see the videos already in your chats, and play with the remote.
+      No cables, no downloads to manage.
     </p>
+    <div class="quick-install">
+      <div class="code-box">
+        <div class="code-label">Downloader code</div>
+        <div class="code">9070172</div>
+      </div>
+      <ol class="quick-steps">
+        <li>Install Downloader from the TV store</li>
+        <li>Allow “Install unknown apps” for Downloader</li>
+        <li>Enter the code → Install</li>
+      </ol>
+    </div>
+    <p class="more"><a href="#install">Full instructions and troubleshooting ↓</a></p>
     <div class="cta-row">
-      <a class="btn btn-primary" href="telecast.apk" download>Download APK · 3.7 MB</a>
-      <a class="btn btn-ghost" href="#install">Install with Downloader</a>
+      <a class="btn btn-primary" href="#install">Install with Downloader</a>
+      <a class="btn btn-ghost" href="telecast.apk" download>Download APK · 3.7 MB</a>
     </div>
     <p class="hero-note">v1.9 · Android TV 7.0 or newer · Google TV, Fire TV, NVIDIA Shield, TV boxes</p>
   </div>
@@ -188,15 +247,15 @@
   <div class="wrap">
     <h2>Install it</h2>
     <p class="sub">
-      The easiest route on a TV is the free <strong>Downloader</strong> app by AFTVnews —
-      it's on every Android TV / Fire TV store. Install that first, then use the code below.
+      The easiest route on a TV is the free <strong>Downloader</strong> app by AFTVnews.
+      These four steps are the install only — signing in to Telegram comes after.
     </p>
 
     <div class="code-card">
       <div>
         <h3 style="font-size:22px">Open Downloader and enter the code</h3>
-        <p style="color:var(--dim); margin:6px 0 0; max-width:420px">
-          The code fetches this page's APK directly. No computer, no USB stick, no adb.
+        <p style="color:var(--dim); margin:6px 0 0; max-width:440px">
+          The code downloads the app only — not content. No computer, no USB stick, no adb.
         </p>
       </div>
       <div class="code-box">
@@ -206,6 +265,10 @@
     </div>
 
     <ol class="steps" style="margin-top:34px">
+      <li>
+        <h3>Install Downloader from the TV store</h3>
+        <p>The free <strong>Downloader</strong> app by AFTVnews is on the Google TV, Fire TV, and Android TV stores. Install that first.</p>
+      </li>
       <li>
         <h3>Allow installs from Downloader</h3>
         <p>Settings → Apps → Special app access → Install unknown apps → turn on <strong>Downloader</strong>.
@@ -218,11 +281,6 @@
       <li>
         <h3>Launch Telecast from the home row</h3>
         <p>It registers as a proper TV app, so it appears alongside your other apps — not buried in a phone-apps drawer.</p>
-      </li>
-      <li>
-        <h3>Sign in with your phone number</h3>
-        <p>Enter your number on the keypad, then the 5-digit code Telegram sends to your other devices.
-           If you use two-factor, a cloud-password screen follows. The session stays on that TV.</p>
       </li>
     </ol>
 
@@ -238,19 +296,29 @@
   </div>
 </section>
 
-<section>
+<section id="signin">
   <div class="wrap">
-    <h2>How you use it</h2>
-    <p class="sub">Everything is driven by the D-pad. Arrows move, OK opens, BACK goes up a level.</p>
+    <h2>Sign in</h2>
+    <p class="sub">
+      Installing the app doesn't sign you in. Open Telecast and enter your phone number —
+      this step is separate from the Downloader install above.
+    </p>
 
     <figure>
       <img src="img/signin.png" alt="Telecast sign-in screen: a phone number typed on an on-screen keypad, with the Telegram login pitch on the left." />
       <figcaption>
         <strong>Sign in</strong> — punch your number in on the keypad with the D-pad, then the
-        5-digit code Telegram sends to your other devices. Two-factor gets its own screen.
-        The session stays on that TV.
+        5-digit code Telegram sends to your other devices. If you use two-factor, a cloud-password
+        screen follows. The session stays on that TV.
       </figcaption>
     </figure>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>How you use it</h2>
+    <p class="sub">Everything is driven by the D-pad. Arrows move, OK opens, BACK goes up a level.</p>
 
     <figure>
       <img src="img/chats.png" alt="Telecast Chats screen: a four-column grid of Telegram groups and channels, each card showing the group name, latest message and how many videos were detected." />
@@ -313,8 +381,8 @@
       </div>
       <div class="card">
         <div class="ico">🔍</div>
-        <h3>Search everything</h3>
-        <p>Search your own chats and Telegram-wide video search at once, in any language.</p>
+        <h3>Search your chats</h3>
+        <p>Search the chats and channels your account already belongs to, in any language.</p>
       </div>
       <div class="card">
         <div class="ico">📺</div>

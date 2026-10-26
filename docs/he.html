@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Telecast — נגן מדיה של טלגרם ל-Android TV</title>
-<meta name="description" content="Telecast הופך את הסרטים והסדרות שמשותפים בקבוצות הטלגרם שלך לספרייה בטלוויזיה, שאפשר לדפדף בה ולנגן ממנה עם השלט." />
+<meta name="description" content="סרטוני הטלגרם שלך, על הטלוויזיה, עם השלט. Telecast לא מארח ולא מפיץ תוכן — רק סרטונים שכבר נמצאים בצ'אטים שלך." />
 <link rel="alternate" hreflang="en" href="index.html" />
 <link rel="icon" type="image/svg+xml" href="favicon.svg" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -39,8 +39,8 @@
       radial-gradient(520px 400px at 35% 110%, rgba(62,207,175,.40), transparent 65%),
       var(--paper);
   }
-  .hero{padding:84px 0 72px; position:relative}
-  .brand{display:flex; align-items:center; gap:14px; margin-bottom:38px}
+  .hero{padding:48px 0 40px; position:relative}
+  .brand{display:flex; align-items:center; gap:14px; margin-bottom:22px}
   .brand-mark{
     width:52px; height:52px; border-radius:16px; display:grid; place-items:center;
     background:var(--grape); color:#fff; border:2px solid var(--ink); box-shadow:var(--sticker);
@@ -50,14 +50,45 @@
   .lang{margin-inline-start:auto; font-family:var(--display); font-weight:600; font-size:15px}
   h1{
     font-family:var(--display); font-weight:700; letter-spacing:0;
-    font-size:clamp(34px,5.4vw,60px); line-height:1.12; margin:0 0 20px;
+    font-size:clamp(30px,4.6vw,52px); line-height:1.12; margin:0 0 14px;
   }
   h1 em{
     font-style:normal; color:var(--grape);
     text-decoration:underline; text-decoration-color:var(--sunny);
     text-decoration-thickness:8px; text-underline-offset:6px;
   }
-  .lede{font-size:clamp(17px,2.2vw,21px); color:var(--dim); max-width:640px; margin:0 0 34px}
+  .lede{font-size:clamp(16px,2vw,19px); color:var(--dim); max-width:660px; margin:0 0 18px}
+  .trust{
+    margin:0 0 14px; padding:10px 14px; max-width:700px;
+    background:#fff; border:2px solid var(--ink); border-radius:18px;
+    box-shadow:2px 2px 0 0 var(--ink);
+    font-size:15.5px; line-height:1.45; color:var(--ink);
+  }
+  .trust strong{font-weight:800}
+  .quick-install{
+    display:flex; flex-wrap:wrap; gap:16px 28px; align-items:center;
+    margin:0 0 16px; padding:16px 18px;
+    background:var(--mint); color:var(--ink);
+    border:2px solid var(--ink); border-radius:28px; box-shadow:var(--sticker);
+  }
+  .quick-install .code-box{padding:12px 22px}
+  .quick-install .code{font-size:clamp(42px,8vw,56px)}
+  ol.quick-steps{
+    counter-reset:q; list-style:none; margin:0; padding:0;
+    display:grid; gap:8px; flex:1 1 260px;
+  }
+  ol.quick-steps li{
+    counter-increment:q; display:flex; gap:10px; align-items:center;
+    font-size:16px; line-height:1.4; font-weight:700;
+  }
+  ol.quick-steps li::before{
+    content:counter(q); flex:0 0 auto;
+    width:26px; height:26px; border-radius:50%; display:grid; place-items:center;
+    background:var(--sunny); color:var(--ink); border:2px solid var(--ink);
+    font-family:var(--display); font-weight:700; font-size:14px;
+  }
+  .more{margin:0 0 18px; font-size:15.5px}
+  .more a{font-family:var(--display); font-weight:700}
   .cta-row{display:flex; flex-wrap:wrap; gap:16px; align-items:center}
   .btn{
     display:inline-flex; align-items:center; gap:10px;
@@ -70,7 +101,7 @@
   .btn:active{transform:translate(-2px,2px); box-shadow:2px 2px 0 0 var(--ink)}
   .btn-primary{background:var(--grape); color:#fff}
   .btn-ghost{background:var(--sunny); color:var(--ink)}
-  .hero-note{margin-top:20px; font-size:14px; color:var(--mute)}
+  .hero-note{margin-top:16px; font-size:14px; font-weight:700; color:rgba(38,38,94,.88)}
 
   /* sections */
   section{padding:76px 0; border-bottom:2px solid var(--ink)}
@@ -156,7 +187,23 @@
   footer{padding:48px 0 64px; color:var(--dim); font-size:14.5px}
   footer a{color:var(--grape)}
   @media (max-width:640px){
-    .hero{padding:56px 0 48px} section{padding:56px 0} .code-card{padding:26px}
+    .hero{padding:20px 0 24px}
+    .brand{margin-bottom:12px}
+    .brand-mark{width:42px; height:42px; border-radius:14px; font-size:20px}
+    h1{font-size:26px; line-height:1.15; margin:0 0 10px}
+    .trust{font-size:14.5px; line-height:1.4; margin:0 0 10px; padding:8px 12px}
+    .lede{font-size:15.5px; line-height:1.45; margin:0 0 12px}
+    .quick-install{padding:12px 14px; gap:10px; margin:0 0 12px}
+    .quick-install .code-box{padding:8px 12px}
+    .quick-install .code{font-size:44px}
+    ol.quick-steps{gap:6px}
+    ol.quick-steps li{font-size:14.5px}
+    .more{margin:0 0 12px}
+    .btn{padding:12px 18px; font-size:16px}
+    .cta-row{gap:10px}
+    .hero-note{margin-top:12px}
+    section{padding:56px 0}
+    .code-card{padding:26px}
     .code-box{width:100%}
   }
 </style>
@@ -170,15 +217,27 @@
       <div class="brand-name">Telecast</div>
       <a class="lang" href="index.html" lang="en" dir="ltr">English</a>
     </div>
-    <h1>הקבוצות שלך בטלגרם,<br><em>על המסך הגדול.</em></h1>
+    <h1>סרטוני הטלגרם שלך, על הטלוויזיה, <em>עם השלט</em></h1>
+    <p class="trust"><strong>Telecast לא מארח ולא מפיץ תוכן</strong> — רק סרטונים שכבר נמצאים בצ'אטים של החשבון שלך בטלגרם.</p>
     <p class="lede">
-      Telecast מתחבר לחשבון הטלגרם שלך, סורק את הצ'אטים שאתם כבר נמצאים בהם ומחפש
-      בהם סרטונים, והופך אותם לספרייה שמדפדפים בה עם השלט — בלי טלפון, בלי כבלים
-      ובלי הורדות לנהל.
+      נכנסים לחשבון, רואים את הסרטונים שכבר יש בצ'אטים, ומנגנים עם השלט.
+      בלי כבלים ובלי הורדות לנהל.
     </p>
+    <div class="quick-install">
+      <div class="code-box">
+        <div class="code-label">קוד Downloader</div>
+        <div class="code">9070172</div>
+      </div>
+      <ol class="quick-steps">
+        <li>מתקינים Downloader מהחנות בטלוויזיה</li>
+        <li>מאשרים «התקנת אפליקציות לא מזוהות» ל־Downloader</li>
+        <li>מזינים את הקוד → Install</li>
+      </ol>
+    </div>
+    <p class="more"><a href="#install">הוראות מלאות ופתרון תקלות ↓</a></p>
     <div class="cta-row">
-      <a class="btn btn-primary" href="telecast.apk" download>הורדת ה-APK · 3.7 MB</a>
-      <a class="btn btn-ghost" href="#install">התקנה עם Downloader</a>
+      <a class="btn btn-primary" href="#install">התקנה עם Downloader</a>
+      <a class="btn btn-ghost" href="telecast.apk" download>הורדת APK · 3.7 MB</a>
     </div>
     <p class="hero-note">v1.9 · Android TV 7.0 ומעלה · Google TV, Fire TV, NVIDIA Shield, ממירי אנדרואיד</p>
   </div>
@@ -188,15 +247,15 @@
   <div class="wrap">
     <h2>איך מתקינים</h2>
     <p class="sub">
-      הדרך הפשוטה ביותר בטלוויזיה היא אפליקציית <strong>Downloader</strong> החינמית של AFTVnews —
-      היא נמצאת בכל חנות של Android TV / Fire TV. מתקינים אותה קודם, ואז מזינים את הקוד שלמטה.
+      הדרך הפשוטה ביותר בטלוויזיה היא אפליקציית <strong>Downloader</strong> החינמית של AFTVnews.
+      ארבעת השלבים כאן הם ההתקנה בלבד — ההתחברות לטלגרם באה אחר כך.
     </p>
 
     <div class="code-card">
       <div>
         <h3 style="font-size:22px">פותחים את Downloader ומזינים את הקוד</h3>
-        <p style="color:var(--dim); margin:6px 0 0; max-width:420px">
-          הקוד מוריד את ה-APK ישירות מהדף הזה. בלי מחשב, בלי דיסק און קי ובלי adb.
+        <p style="color:var(--dim); margin:6px 0 0; max-width:440px">
+          הקוד מוריד את האפליקציה בלבד — לא תוכן. בלי מחשב, בלי דיסק און קי ובלי adb.
         </p>
       </div>
       <div class="code-box">
@@ -206,6 +265,10 @@
     </div>
 
     <ol class="steps" style="margin-top:34px">
+      <li>
+        <h3>מתקינים Downloader מהחנות בטלוויזיה</h3>
+        <p>אפליקציית <strong>Downloader</strong> החינמית של AFTVnews נמצאת בחנויות של Google TV, Fire TV ו-Android TV. מתקינים אותה קודם.</p>
+      </li>
       <li>
         <h3>מאשרים התקנות מ-Downloader</h3>
         <p>הגדרות → אפליקציות → גישה מיוחדת → התקנת אפליקציות לא מזוהות → מפעילים עבור <strong>Downloader</strong>.
@@ -218,11 +281,6 @@
       <li>
         <h3>מפעילים את Telecast משורת הבית</h3>
         <p>האפליקציה נרשמת כאפליקציית טלוויזיה אמיתית, ולכן היא מופיעה ליד השאר — ולא קבורה במגירת אפליקציות הטלפון.</p>
-      </li>
-      <li>
-        <h3>מתחברים עם מספר הטלפון</h3>
-        <p>מקלידים את המספר על המקלדת, ואז את הקוד בן 5 הספרות שטלגרם שולח למכשירים האחרים שלכם.
-           אם יש לכם אימות דו-שלבי, יופיע אחר כך מסך של סיסמת הענן. החיבור נשמר על אותה טלוויזיה.</p>
       </li>
     </ol>
 
@@ -238,19 +296,29 @@
   </div>
 </section>
 
-<section>
+<section id="signin">
   <div class="wrap">
-    <h2>איך משתמשים</h2>
-    <p class="sub">הכול מונע מלחצני הכיוון. החצים מזיזים, OK פותח, BACK עולה שלב אחורה.</p>
+    <h2>התחברות</h2>
+    <p class="sub">
+      ההתקנה לא מחברת אתכם לטלגרם. פותחים את Telecast ומזינים את מספר הטלפון —
+      זה נפרד משלבי ה-Downloader למעלה.
+    </p>
 
     <figure>
       <img src="img/signin.png" alt="מסך ההתחברות של Telecast: מספר טלפון שהוקלד על מקלדת מסך, ולצידו הסבר על ההתחברות לטלגרם." />
       <figcaption>
         <strong>התחברות</strong> — מקישים את המספר על המקלדת עם לחצני הכיוון, ואז את הקוד בן 5 הספרות
-        שטלגרם שולח למכשירים האחרים שלכם. לאימות הדו-שלבי יש מסך נפרד.
+        שטלגרם שולח למכשירים האחרים שלכם. אם יש אימות דו-שלבי, מופיע אחר כך מסך של סיסמת הענן.
         החיבור נשמר על אותה טלוויזיה.
       </figcaption>
     </figure>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>איך משתמשים</h2>
+    <p class="sub">הכול מונע מלחצני הכיוון. החצים מזיזים, OK פותח, BACK עולה שלב אחורה.</p>
 
     <figure>
       <img src="img/chats.png" alt="מסך הצ'אטים של Telecast: רשת בת ארבע עמודות של קבוצות וערוצי טלגרם, כל כרטיס מציג שם, הודעה אחרונה וכמה סרטונים זוהו." />
@@ -313,8 +381,8 @@
       </div>
       <div class="card">
         <div class="ico">🔍</div>
-        <h3>חיפוש בכל מקום</h3>
-        <p>חיפוש בצ'אטים שלכם ובחיפוש הווידאו של טלגרם כולו, בבת אחת ובכל שפה.</p>
+        <h3>חיפוש בצ'אטים שלך</h3>
+        <p>חיפוש בצ'אטים שלך ובערוצים שאתה כבר חבר בהם, בכל שפה.</p>
       </div>
       <div class="card">
         <div class="ico">📺</div>
