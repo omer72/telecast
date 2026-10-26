@@ -1,7 +1,7 @@
 {
-  "versionCode": 9,
-  "versionName": "1.8",
+  "versionCode": 10,
+  "versionName": "1.9",
   "apk": "telecast.apk",
   "downloaderCode": "9070172",
-  "notes": "Movies start much faster — streaming now fetches several chunks at once"
+  "notes": "Telegram folders on the Chats tab, and the login code is sent as soon as your number is complete"
 }
