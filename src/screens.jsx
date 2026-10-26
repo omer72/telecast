@@ -398,6 +398,7 @@ export function Library({ tab, setTab, onSelectGroup, onOpenPlayer, onLogout }) 
   const [searchQuery, setSearchQuery] = useState("");
   const [searchGlobal, setSearchGlobal] = useState([]);
   const [searching, setSearching] = useState(false);
+  const [folderId, setFolderId] = useState(null); // null = All
 
   useEffect(() => {
     let cancelled = false;
@@ -480,6 +481,17 @@ export function Library({ tab, setTab, onSelectGroup, onOpenPlayer, onLogout }) 
     return [...groups].sort((a, b) => Number(favorites.has(b.id)) - Number(favorites.has(a.id)));
   }, [groups, favorites]);
 
+  // Telegram folders, shown as chips above the Chats grid (only when the
+  // account has any). "All" is always first.
+  const folders = useMemo(
+    () => (groups.folders?.length ? [{ id: null, title: "All" }, ...groups.folders] : []),
+    [groups]
+  );
+  const chatGroups = useMemo(
+    () => (folderId === null ? sortedGroups : sortedGroups.filter((g) => g.folderIds.includes(folderId))),
+    [sortedGroups, folderId]
+  );
+
   // In-memory matches across the groups we've already loaded.
   const searchResults = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -551,12 +563,12 @@ export function Library({ tab, setTab, onSelectGroup, onOpenPlayer, onLogout }) 
 
   const chatsRows = useMemo(() => {
     const cols = CHAT_COLS;
-    const rows = [];
-    for (let i = 0; i < sortedGroups.length; i += cols) {
-      rows.push(sortedGroups.slice(i, i + cols).map((_, k) => `chat-${i + k}`));
+    const rows = folders.length ? [folders.map((_, i) => `folder-${i}`)] : [];
+    for (let i = 0; i < chatGroups.length; i += cols) {
+      rows.push(chatGroups.slice(i, i + cols).map((_, k) => `chat-${i + k}`));
     }
     return rows;
-  }, [sortedGroups]);
+  }, [chatGroups, folders]);
 
   const settingsRows = useMemo(
     () => [["s-acct"], ["s-resume"], ["s-ext"], ["s-clear-history"], ["s-logout"], ["s-exit"]],
@@ -632,7 +644,9 @@ export function Library({ tab, setTab, onSelectGroup, onOpenPlayer, onLogout }) 
     } else if (id?.startsWith("chats-")) {
       onSelectGroup(sortedGroups[parseInt(id.slice(6))]);
     } else if (id?.startsWith("chat-")) {
-      onSelectGroup(sortedGroups[parseInt(id.slice(5))]);
+      onSelectGroup(chatGroups[parseInt(id.slice(5))]);
+    } else if (id?.startsWith("folder-")) {
+      setFolderId(folders[parseInt(id.slice(7))].id);
     } else if (id?.startsWith("latest-")) {
       const idx = parseInt(id.slice(7));
       const mv = homeRows.latest[idx];
@@ -716,7 +730,9 @@ export function Library({ tab, setTab, onSelectGroup, onOpenPlayer, onLogout }) 
         {tab === "chats" && (
           <ChatsContent
             focusedId={focusedId}
-            groups={sortedGroups}
+            groups={chatGroups}
+            folders={folders}
+            folderId={folderId}
             favorites={favorites}
             onToggleFav={handleToggleFav}
           />
@@ -920,13 +936,26 @@ function HomeContent({ focusedId, groups, continueWatching, latest, favorites, o
   );
 }
 
-function ChatsContent({ focusedId, groups, favorites, onToggleFav }) {
+function ChatsContent({ focusedId, groups, folders, folderId, favorites, onToggleFav }) {
   return (
     <div className="content-scroll" style={{ paddingTop: 8 }}>
       <div className="shelf-head" style={{ marginBottom: 22 }}>
         <h3 style={{ fontSize: 36 }}>Chats</h3>
         <span className="shelf-sub">Groups, channels and private chats · ⭐ favorites first</span>
       </div>
+      {folders.length > 0 && (
+        <div className="folder-row">
+          {folders.map((f, i) => (
+            <div
+              key={f.id ?? "all"}
+              data-focus-id={`folder-${i}`}
+              className={`folder-chip focusable ${f.id === folderId ? "active" : ""} ${focusedClass(`folder-${i}`, focusedId)}`}
+            >
+              {f.title}
+            </div>
+          ))}
+        </div>
+      )}
       <div className="chat-grid" style={{ "--chat-cols": CHAT_COLS }}>
         {groups.map((g, i) => (
           <ChatCard

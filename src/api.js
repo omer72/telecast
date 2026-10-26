@@ -537,6 +537,41 @@ export async function getGroups() {
   // budget — with DMs included, 100 was truncating people's group list.
   const dialogs = await c.getDialogs({ limit: 200 });
 
+  // Telegram folders (dialog filters). Best effort: a failure just means no
+  // folder chips, never a broken library.
+  let filters = [];
+  try {
+    const { Api, utils } = await import("telegram");
+    const res = await c.invoke(new Api.messages.GetDialogFilters());
+    const ids = (peers) => new Set((peers || []).map((p) => String(utils.getPeerId(p))));
+    filters = (res.filters || res)
+      .filter((f) => f.className === "DialogFilter" || f.className === "DialogFilterChatlist")
+      .map((f) => ({
+        id: f.id,
+        title: typeof f.title === "string" ? f.title : f.title?.text || "Folder",
+        flags: f,
+        inc: ids([...(f.includePeers || []), ...(f.pinnedPeers || [])]),
+        exc: ids(f.excludePeers),
+      }));
+  } catch (err) {
+    console.warn("folders load failed:", err);
+  }
+  // shortcut: ignores the excludeMuted / excludeRead / excludeArchived flags, add if a folder looks too full.
+  const inFolder = (f, d) => {
+    const id = String(d.id);
+    if (f.inc.has(id)) return true;
+    if (f.exc.has(id)) return false;
+    const u = d.entity, fl = f.flags;
+    const person = d.isUser && !u?.bot;
+    return Boolean(
+      (fl.contacts && person && u?.contact) ||
+      (fl.nonContacts && person && !u?.contact) ||
+      (fl.groups && d.isGroup) ||
+      (fl.broadcasts && d.isChannel && !d.isGroup) ||
+      (fl.bots && u?.bot)
+    );
+  };
+
   const groups = [];
   for (const d of dialogs) {
     // One-to-one chats are included: people stash films in DMs and, very
@@ -563,6 +598,7 @@ export async function getGroups() {
       description: `${kind === "Private" ? "Private chat" : kind === "Saved" ? "Saved Messages" : kind} · Telegram`,
       movieIds: [],
       movies: [], // lazy-loaded by getMedia()
+      folderIds: filters.filter((f) => inFolder(f, d)).map((f) => f.id),
       unread: d.unreadCount || 0,
       lastMessage: d.message?.message?.slice(0, 80) || "",
     });
@@ -570,6 +606,7 @@ export async function getGroups() {
   // Saved Messages first when present — it's the one chat that's definitely
   // yours, and the most likely place to have parked something to watch.
   groups.sort((a, b) => Number(b.kind === "Saved") - Number(a.kind === "Saved"));
+  groups.folders = filters.map(({ id, title }) => ({ id, title }));
   _groupsCache = groups;
   return groups;
 }
